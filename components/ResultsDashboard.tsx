@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import {
   ArrowLeft,
   ExternalLink,
-  Share2,
   Zap,
   Target,
   Calendar,
@@ -458,20 +457,6 @@ export default function ResultsDashboard({
   onForceReanalyze?: () => void;
 }) {
   const levelConfig = getLevelConfig(result.level);
-  const [copied, setCopied] = useState(false);
-
-  function handleShare() {
-    const text = `J'ai analysé mon portfolio avec Portfolio Analyzer.\n\nScore : ${result.totalScore}/100 — ${levelConfig.label}\n\n"${result.verdict}"\n\nAnalyse ton portfolio gratuitement : ${window.location.origin}/analyze`;
-
-    if (navigator.share) {
-      navigator.share({ title: "Mon analyse de portfolio", text });
-    } else {
-      navigator.clipboard.writeText(text).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      });
-    }
-  }
 
   const formattedDate = new Date(result.analyzedAt).toLocaleDateString("fr-FR", {
     day: "numeric",
@@ -488,8 +473,7 @@ export default function ResultsDashboard({
       <div
         className="sticky top-0 z-40 px-6 py-4 flex items-center justify-between"
         style={{
-          background: "rgba(245, 243, 255, 0.92)",
-          backdropFilter: "blur(16px)",
+          background: "transparent",
           borderBottom: "1px solid var(--border)",
         }}
       >
@@ -518,14 +502,6 @@ export default function ResultsDashboard({
             <ExternalLink size={12} />
             Voir le site
           </a>
-          <button
-            onClick={handleShare}
-            className="btn-ghost text-xs px-3 py-2"
-            style={copied ? { background: "#ECFDF5", color: "#059669", borderColor: "#A7F3D0" } : {}}
-          >
-            <Share2 size={12} />
-            {copied ? "Copié !" : "Partager"}
-          </button>
         </div>
       </div>
 

@@ -112,6 +112,20 @@ interface HistoryEntry {
 }
 
 const LS_KEY = "pa-history";
+const LS_LAST_ANALYSIS = "pa-last-analysis";
+
+function canAnalyzeToday(): boolean {
+  try {
+    const last = localStorage.getItem(LS_LAST_ANALYSIS);
+    if (!last) return true;
+    const lastDate = new Date(last).toDateString();
+    return lastDate !== new Date().toDateString();
+  } catch { return true; }
+}
+
+function markAnalyzedToday(): void {
+  try { localStorage.setItem(LS_LAST_ANALYSIS, new Date().toISOString()); } catch {}
+}
 
 function normalizeUrl(url: string): string {
   try {
@@ -133,7 +147,7 @@ function loadHistory(): HistoryEntry[] {
 function saveToHistory(entry: HistoryEntry): HistoryEntry[] {
   const all = loadHistory();
   const filtered = all.filter((e) => e.normalizedUrl !== entry.normalizedUrl);
-  const updated = [entry, ...filtered].slice(0, 10);
+  const updated = [entry, ...filtered].slice(0, 1);
   localStorage.setItem(LS_KEY, JSON.stringify(updated));
   return updated;
 }
@@ -191,7 +205,7 @@ function HistoryPanel({ history, onReanalyze }: { history: HistoryEntry[]; onRea
   );
 }
 
-function EmbedInput({ onAnalyze, history }: { onAnalyze: (url: string, force?: boolean) => void; history: HistoryEntry[] }) {
+function EmbedInput({ onAnalyze, history, limitReached }: { onAnalyze: (url: string, force?: boolean) => void; history: HistoryEntry[]; limitReached: boolean }) {
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
 
@@ -228,10 +242,15 @@ function EmbedInput({ onAnalyze, history }: { onAnalyze: (url: string, force?: b
             </p>
           )}
         </div>
-        <button type="submit" className="btn-primary w-full justify-center py-3" disabled={!url.trim()}>
+        <button type="submit" className="btn-primary w-full justify-center py-3" disabled={!url.trim() || limitReached}>
           Analyser mon portfolio
           <ArrowRight size={15} />
         </button>
+        {limitReached && (
+          <p className="text-xs text-center mt-2" style={{ color: "var(--text-muted)" }}>
+            Tu as déjà utilisé ton analyse gratuite aujourd'hui. Reviens demain !
+          </p>
+        )}
       </form>
 
       <div className="mt-4 grid grid-cols-2 gap-2">
@@ -269,9 +288,11 @@ export default function EmbedPage() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState("");
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [limitReached, setLimitReached] = useState(false);
 
   useEffect(() => {
     setHistory(loadHistory());
+    setLimitReached(!canAnalyzeToday());
   }, []);
 
   const handleAnalyze = useCallback(async (portfolioUrl: string, force = false) => {
@@ -295,6 +316,8 @@ export default function EmbedPage() {
       if (!res.ok) throw new Error(data.error || "Erreur serveur.");
       setResult(data);
       setState("results");
+      markAnalyzedToday();
+      setLimitReached(true);
       const entry: HistoryEntry = {
         url: portfolioUrl,
         normalizedUrl: normalizeUrl(portfolioUrl),
@@ -326,7 +349,7 @@ export default function EmbedPage() {
             </p>
           </div>
           <div className="card">
-            <EmbedInput onAnalyze={handleAnalyze} history={history} />
+            <EmbedInput onAnalyze={handleAnalyze} history={history} limitReached={limitReached} />
           </div>
         </div>
       )}
