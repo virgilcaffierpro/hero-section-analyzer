@@ -200,7 +200,13 @@ export default function EmbedPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: portfolioUrl, force }),
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data: { error?: string };
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("Erreur serveur inattendue. Vérifie que la clé API Anthropic est bien configurée dans les variables d'environnement Vercel.");
+      }
       if (!res.ok) throw new Error(data.error || "Erreur serveur.");
       setResult(data);
       setState("results");

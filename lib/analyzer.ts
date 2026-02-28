@@ -1,10 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { ScrapedContent, AnalysisResult } from "./types";
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
 function buildContentSummary(url: string, content: ScrapedContent): string {
   return `
 URL analysée : ${url}
@@ -174,6 +170,8 @@ export async function analyzePortfolio(
   content: ScrapedContent
 ): Promise<AnalysisResult> {
   const prompt = buildPrompt(url, content);
+
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
   const message = await client.messages.create({
     model: "claude-sonnet-4-5",
