@@ -138,7 +138,46 @@ export async function scrapeWebsite(rawUrl: string): Promise<ScrapedContent> {
       }
     });
 
-    const testimonials = [...selectorBased, ...headingBased]
+    // Heuristique : détection par pattern de contenu (guillemets, étoiles, attribution)
+    // Couvre les sites sans classe/id sémantique (builders custom, HTML brut…)
+    const heuristicTestimonials: string[] = [];
+
+    // Pattern 1 : paragraphe qui commence par un guillemet ou contient des étoiles
+    $("p").each((_, el) => {
+      const txt = cleanText($(el).text());
+      if (txt.length < 40 || txt.length > 500) return;
+      const startsWithQuote = /^["""«\u201C\u00AB'']/.test(txt);
+      const hasStars       = /[★⭐]|\d\s*\/\s*5/.test(txt);
+      if (startsWithQuote || hasStars) {
+        // Inclure le contexte du parent (souvent l'attribution y est)
+        const parentTxt = cleanText($(el).parent().text());
+        const result = parentTxt.length > txt.length && parentTxt.length < 700
+          ? parentTxt : txt;
+        heuristicTestimonials.push(result);
+      }
+    });
+
+    // Pattern 2 : conteneur avec un texte long (citation) + ligne courte (Prénom Nom, Titre)
+    $("div, li, article").each((_, container) => {
+      const children = $(container).children().toArray();
+      if (children.length < 2 || children.length > 7) return;
+      const childTexts = children
+        .map((c) => cleanText($(c).text()))
+        .filter((t) => t.length > 0);
+      const hasQuotedText  = childTexts.some((t) => t.length > 50 && /^["""«\u201C\u00AB'']/.test(t));
+      // Attribution = ligne courte avec initiale majuscule + nom + virgule/pipe
+      const hasAttribution = childTexts.some(
+        (t) => t.length > 3 && t.length < 80 && /^[A-ZÉÀÈÙÂ][a-zéàèùâê]+\s+[A-ZÉÀÈÙÂ]/.test(t)
+      );
+      if (hasQuotedText && hasAttribution) {
+        const combined = childTexts.join(" — ");
+        if (combined.length > 60 && combined.length < 650) {
+          heuristicTestimonials.push(combined);
+        }
+      }
+    });
+
+    const testimonials = [...selectorBased, ...headingBased, ...heuristicTestimonials]
       .filter((t, i, arr) => arr.indexOf(t) === i) // dédoublonnage
       .filter((t) => t.length > 30)
       .slice(0, 5);
