@@ -85,21 +85,41 @@ export async function scrapeWebsite(rawUrl: string): Promise<ScrapedContent> {
       .filter((t, i, arr) => arr.indexOf(t) === i)
       .slice(0, 8);
 
-    // Testimonials
-    const testimonialSelectors = [
-      '[class*="testimonial"]',
-      '[class*="review"]',
-      '[class*="avis"]',
-      '[class*="temoignage"]',
-      "blockquote",
-      '[class*="quote"]',
-      '[class*="client-say"]',
+    // Testimonials — détection large (CSS + headings + cite)
+    const testimonialCssSelectors = [
+      '[class*="testimonial"]', '[class*="testimonials"]',
+      '[class*="review"]',      '[class*="reviews"]',
+      '[class*="avis"]',        '[class*="temoignage"]',
+      '[class*="témoignage"]',  '[class*="recommandation"]',
+      '[class*="quote"]',       '[class*="client-say"]',
+      '[class*="client-word"]', '[class*="feedback"]',
+      '[class*="social-proof"]','[class*="trust-"]',
+      '[class*="what-client"]', '[class*="what-people"]',
+      "blockquote",             "cite",
     ].join(", ");
 
-    const testimonials = $(testimonialSelectors)
+    const selectorBased = $(testimonialCssSelectors)
       .map((_, el) => cleanText($(el).text()))
       .get()
-      .filter((t) => t.length > 20 && t.length < 500)
+      .filter((t) => t.length > 30);
+
+    // Fallback : chercher les sections proches de headings "avis / témoignages / clients"
+    const testimonialKeywords = ["avis", "témoignage", "temoignage", "client", "recommandation", "disent", "parlent", "confiance", "ils nous font", "ce que disent"];
+    const headingBased: string[] = [];
+    $("h1, h2, h3, h4").each((_, heading) => {
+      const headingText = $(heading).text().toLowerCase();
+      if (testimonialKeywords.some((kw) => headingText.includes(kw))) {
+        // Remonter jusqu'à la section englobante et prendre son texte
+        const section = $(heading).closest("section, [class*='section'], [class*='block'], [class*='container']");
+        const target = section.length ? section : $(heading).parent();
+        const txt = cleanText(target.text());
+        if (txt.length > 40) headingBased.push(txt.substring(0, 800));
+      }
+    });
+
+    const testimonials = [...selectorBased, ...headingBased]
+      .filter((t, i, arr) => arr.indexOf(t) === i) // dédoublonnage
+      .filter((t) => t.length > 30)
       .slice(0, 5);
 
     // Case studies detection

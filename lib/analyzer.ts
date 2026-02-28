@@ -17,6 +17,7 @@ RÈGLES D'ANALYSE ABSOLUES :
 6. Donne des exemples concrets dans tes feedbacks quand possible
 7. Si les données sont insuffisantes pour un axe, indique-le et note de façon conservatrice
 8. PÉRIMÈTRE STRICT : toutes tes recommandations (quickAction, quickWins, blocking) doivent porter UNIQUEMENT sur la page analysée. Ne suggère JAMAIS de créer une nouvelle page ou de modifier une autre page du site. Si un élément manque (témoignages, offre, CTA…), recommande de l'ajouter sur CETTE page, pas sur une autre page inexistante.
+9. TÉMOIGNAGES : si le champ TÉMOIGNAGES indique un nombre > 0, cela signifie que des témoignages sont présents et visibles sur la page. Ne dis JAMAIS qu'il n'y a pas de témoignages dans ce cas. Évalue plutôt leur QUALITÉ (résultats business concrets, spécificité, nom + titre de l'auteur, photo, logo client) plutôt que leur présence.
 
 SCORES ET PONDÉRATIONS :
 - Message de positionnement : /20
