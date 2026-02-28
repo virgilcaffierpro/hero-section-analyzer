@@ -473,7 +473,7 @@ export default function ResultsDashboard({
       <div
         className="sticky top-0 z-40 px-6 py-4 flex items-center justify-between"
         style={{
-          background: "transparent",
+          background: "#FBF5FF",
           borderBottom: "1px solid var(--border)",
         }}
       >
