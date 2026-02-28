@@ -178,8 +178,8 @@ export async function analyzePortfolio(
   });
 
   const message = await client.messages.create({
-    model: "claude-3-5-haiku-20241022",
-    max_tokens: 8192,
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 4096,
     temperature: 0,
     // Prefill forces Claude to start directly with { — no markdown wrapping possible
     messages: [
