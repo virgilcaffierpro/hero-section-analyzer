@@ -251,7 +251,7 @@ export default function EmbedPage() {
           className="inline-flex items-center gap-1 text-xs"
           style={{ color: "var(--text-muted)" }}
         >
-          Propulsé par Portfolio Analyzer <ExternalLink size={10} />
+          Créé par Frames académie <ExternalLink size={10} />
         </a>
       </div>
     </div>
