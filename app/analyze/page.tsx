@@ -347,7 +347,8 @@ export default function AnalyzePage() {
         body: JSON.stringify({ url: portfolioUrl, force }),
       });
       const text = await res.text();
-      let data: { error?: string };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let data: any;
       try {
         data = JSON.parse(text);
       } catch {
