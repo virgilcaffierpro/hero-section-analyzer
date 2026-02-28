@@ -301,10 +301,11 @@ export default function EmbedPage() {
   useEffect(() => {
     setHistory(loadHistory());
     setLimitReached(!canAnalyzeToday());
-    // Restore last result from localStorage on refresh
+    // Restore last result on refresh, unless user explicitly chose to go back to input
     try {
+      const userReset = sessionStorage.getItem("pa-reset");
       const saved = localStorage.getItem(LS_LAST_RESULT);
-      if (saved) {
+      if (saved && !userReset) {
         const parsed = JSON.parse(saved);
         setResult(parsed.result);
         setUrl(parsed.url);
@@ -353,7 +354,7 @@ export default function EmbedPage() {
 
   function handleReset() {
     setState("input"); setError(""); setResult(null);
-    try { localStorage.removeItem(LS_LAST_RESULT); } catch {}
+    try { sessionStorage.setItem("pa-reset", "1"); } catch {}
   }
   function handleForceReanalyze() { handleAnalyze(url, true); }
   function handleViewLastResult() {
@@ -364,6 +365,7 @@ export default function EmbedPage() {
         setResult(parsed.result);
         setUrl(parsed.url);
         setState("results");
+        sessionStorage.removeItem("pa-reset");
       }
     } catch {}
   }
