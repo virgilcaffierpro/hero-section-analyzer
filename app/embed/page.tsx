@@ -221,7 +221,7 @@ export default function EmbedPage() {
   function handleForceReanalyze() { handleAnalyze(url, true); }
 
   return (
-    <div style={{ background: "var(--bg-page)", minHeight: "100vh" }}>
+    <div style={{ background: "transparent", minHeight: "100vh" }}>
       {state === "input" && (
         <div className="card m-4" style={{ maxWidth: 480, margin: "16px auto" }}>
           <EmbedInput onAnalyze={handleAnalyze} />
