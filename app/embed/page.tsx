@@ -113,6 +113,7 @@ interface HistoryEntry {
 
 const LS_KEY = "pa-history";
 const LS_LAST_ANALYSIS = "pa-last-analysis";
+const LS_LAST_RESULT = "pa-last-result";
 
 function canAnalyzeToday(): boolean {
   try {
@@ -293,6 +294,16 @@ export default function EmbedPage() {
   useEffect(() => {
     setHistory(loadHistory());
     setLimitReached(!canAnalyzeToday());
+    // Restore last result from localStorage on refresh
+    try {
+      const saved = localStorage.getItem(LS_LAST_RESULT);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setResult(parsed.result);
+        setUrl(parsed.url);
+        setState("results");
+      }
+    } catch {}
   }, []);
 
   const handleAnalyze = useCallback(async (portfolioUrl: string, force = false) => {
@@ -318,6 +329,7 @@ export default function EmbedPage() {
       setState("results");
       markAnalyzedToday();
       setLimitReached(true);
+      try { localStorage.setItem(LS_LAST_RESULT, JSON.stringify({ result: data, url: portfolioUrl })); } catch {}
       const entry: HistoryEntry = {
         url: portfolioUrl,
         normalizedUrl: normalizeUrl(portfolioUrl),
@@ -332,7 +344,10 @@ export default function EmbedPage() {
     }
   }, []);
 
-  function handleReset() { setState("input"); setError(""); setResult(null); }
+  function handleReset() {
+    setState("input"); setError(""); setResult(null);
+    try { localStorage.removeItem(LS_LAST_RESULT); } catch {}
+  }
   function handleForceReanalyze() { handleAnalyze(url, true); }
 
   return (
