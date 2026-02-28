@@ -66,7 +66,7 @@ NIVEAUX :
 - "transition" : 41-70 (bonnes bases mais pas encore optimisé pour convertir)
 - "vend" : 71-100 (site qui travaille activement à attirer et convaincre des clients)
 
-Retourne UNIQUEMENT un objet JSON valide (sans markdown, sans backticks, sans commentaires) :
+Retourne UNIQUEMENT un objet JSON valide, compact, sans indentation ni espaces superflus (sans markdown, sans backticks, sans commentaires) :
 
 {
   "totalScore": <nombre entier 0-100>,
