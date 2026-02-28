@@ -200,6 +200,37 @@ export async function analyzePortfolio(
   }
   cleanedResponse = cleanedResponse.trim();
 
+  // Fix literal newline/tab characters inside JSON string values
+  // Claude sometimes inserts real \n chars inside strings, which breaks JSON.parse
+  let fixed = "";
+  let inString = false;
+  let escaped = false;
+  for (let i = 0; i < cleanedResponse.length; i++) {
+    const ch = cleanedResponse[i];
+    if (escaped) {
+      fixed += ch;
+      escaped = false;
+      continue;
+    }
+    if (ch === "\\" && inString) {
+      escaped = true;
+      fixed += ch;
+      continue;
+    }
+    if (ch === '"') {
+      inString = !inString;
+      fixed += ch;
+      continue;
+    }
+    if (inString) {
+      if (ch === "\n") { fixed += "\\n"; continue; }
+      if (ch === "\r") { fixed += "\\r"; continue; }
+      if (ch === "\t") { fixed += "\\t"; continue; }
+    }
+    fixed += ch;
+  }
+  cleanedResponse = fixed;
+
   const analysisData = JSON.parse(cleanedResponse);
 
   // Validate and ensure totalScore matches sum of axes
