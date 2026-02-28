@@ -5,7 +5,18 @@
       "Bash(node:*)",
       "Bash(npm --version:*)",
       "Bash(curl:*)",
-      "Bash(bash)"
+      "Bash(bash)",
+      "Bash(ssh:*)",
+      "Bash(ssh-keyscan:*)",
+      "Bash(~/.ssh/known_hosts)",
+      "Bash(~/.local/bin/gh auth:*)",
+      "Bash(git push:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(~/.local/bin/gh run list --repo virgilcaffierpro/portfolio-analyzer-free --limit 1)",
+      "Bash(~/.local/bin/gh run watch 22512324986 --repo virgilcaffierpro/portfolio-analyzer-free)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npm run build:*)"
     ]
   }
 }
