@@ -173,7 +173,8 @@ export async function analyzePortfolio(
 
   const client = new Anthropic({
     apiKey: process.env.ANTHROPIC_API_KEY,
-    timeout: 30000, // 30s max — Vercel hobby caps at 60s total
+    timeout: 25000, // 25s per attempt
+    maxRetries: 0,  // no retries — 2 retries × 30s = 60s = Vercel kill
   });
 
   const message = await client.messages.create({
