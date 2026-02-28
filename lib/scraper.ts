@@ -1,7 +1,7 @@
 import * as cheerio from "cheerio";
 import type { ScrapedContent } from "./types";
 
-const TIMEOUT_MS = 15000;
+const TIMEOUT_MS = 8000;
 
 function normalizeUrl(url: string): string {
   if (!url.startsWith("http://") && !url.startsWith("https://")) {
@@ -133,7 +133,7 @@ export async function scrapeWebsite(rawUrl: string): Promise<ScrapedContent> {
     );
 
     // Main body text (cleaned, limited)
-    const bodyText = cleanText($("main, article, .content, body").text()).substring(0, 4000);
+    const bodyText = cleanText($("main, article, .content, body").text()).substring(0, 2000);
 
     return {
       title,

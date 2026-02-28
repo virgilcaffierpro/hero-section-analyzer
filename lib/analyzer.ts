@@ -174,9 +174,9 @@ export async function analyzePortfolio(
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
   const message = await client.messages.create({
-    model: "claude-sonnet-4-5",
-    max_tokens: 4096,
-    temperature: 0, // deterministic output for consistent scores
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 2048,
+    temperature: 0,
     messages: [{ role: "user", content: prompt }],
   });
 
