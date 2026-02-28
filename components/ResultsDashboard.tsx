@@ -482,7 +482,7 @@ export default function ResultsDashboard({
   });
 
   return (
-    <div className="min-h-screen pb-24" style={{ background: "var(--bg-page)" }}>
+    <div className="min-h-screen pb-24" style={{ background: "transparent" }}>
 
       {/* Sticky header */}
       <div
