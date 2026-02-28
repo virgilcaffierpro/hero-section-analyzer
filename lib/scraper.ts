@@ -85,8 +85,9 @@ export async function scrapeWebsite(rawUrl: string): Promise<ScrapedContent> {
       .filter((t, i, arr) => arr.indexOf(t) === i)
       .slice(0, 8);
 
-    // Testimonials — détection large (CSS + headings + cite)
+    // Testimonials — détection large (class + id + headings + cite)
     const testimonialCssSelectors = [
+      // class-based
       '[class*="testimonial"]', '[class*="testimonials"]',
       '[class*="review"]',      '[class*="reviews"]',
       '[class*="avis"]',        '[class*="temoignage"]',
@@ -95,6 +96,12 @@ export async function scrapeWebsite(rawUrl: string): Promise<ScrapedContent> {
       '[class*="client-word"]', '[class*="feedback"]',
       '[class*="social-proof"]','[class*="trust-"]',
       '[class*="what-client"]', '[class*="what-people"]',
+      // id-based (ex: id="témoignages", id="avis-clients") — Framer / Webflow
+      '[id*="testimonial"]',    '[id*="testimonials"]',
+      '[id*="temoignage"]',     '[id*="témoignage"]',
+      '[id*="review"]',         '[id*="avis"]',
+      '[id*="social-proof"]',
+      // éléments sémantiques
       "blockquote",             "cite",
     ].join(", ");
 
@@ -103,17 +110,31 @@ export async function scrapeWebsite(rawUrl: string): Promise<ScrapedContent> {
       .get()
       .filter((t) => t.length > 30);
 
-    // Fallback : chercher les sections proches de headings "avis / témoignages / clients"
+    // Fallback heading : chercher sections proches de h1-h4 contenant les mots clés
+    // Sur Framer/Webflow, closest("section") échoue → on remonte jusqu'à 5 niveaux
     const testimonialKeywords = ["avis", "témoignage", "temoignage", "client", "recommandation", "disent", "parlent", "confiance", "ils nous font", "ce que disent"];
     const headingBased: string[] = [];
     $("h1, h2, h3, h4").each((_, heading) => {
       const headingText = $(heading).text().toLowerCase();
       if (testimonialKeywords.some((kw) => headingText.includes(kw))) {
-        // Remonter jusqu'à la section englobante et prendre son texte
-        const section = $(heading).closest("section, [class*='section'], [class*='block'], [class*='container']");
-        const target = section.length ? section : $(heading).parent();
+        // Remonter de 1 à 5 niveaux, prendre le premier ancêtre dont le texte
+        // est nettement plus long que le heading seul (= section complète)
+        const headingLen = cleanText($(heading).text()).length;
+        let target = $(heading).parent();
+        for (let i = 0; i < 5; i++) {
+          const parent = target.parent();
+          if (!parent.length) break;
+          const parentLen = cleanText(parent.text()).length;
+          // S'arrêter quand l'ancêtre contient au moins 3× plus de texte que le heading
+          // et moins de 6000 chars (évite de prendre tout le body)
+          if (parentLen > headingLen * 3 && parentLen < 6000) {
+            target = parent;
+            break;
+          }
+          if (parentLen < 6000) target = parent;
+        }
         const txt = cleanText(target.text());
-        if (txt.length > 40) headingBased.push(txt.substring(0, 800));
+        if (txt.length > 40) headingBased.push(txt.substring(0, 1500));
       }
     });
 
