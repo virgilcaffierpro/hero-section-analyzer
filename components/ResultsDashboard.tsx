@@ -682,16 +682,18 @@ export default function ResultsDashboard({
         {/* ================================================
             PARTIE 4 — Plan 30 jours
             ================================================ */}
-        <section className="mb-12">
-          <SectionHeader
-            icon={<Calendar size={16} />}
-            title="Plan d'action 30 jours"
-            subtitle="Roadmap claire pour transformer ton portfolio en outil de vente"
-            iconBg="#ECFDF5"
-            iconColor="#059669"
-          />
-          <ActionPlan plan={result.plan30Days} />
-        </section>
+        {result.plan30Days && (
+          <section className="mb-12">
+            <SectionHeader
+              icon={<Calendar size={16} />}
+              title="Plan d'action 30 jours"
+              subtitle="Roadmap claire pour transformer ton portfolio en outil de vente"
+              iconBg="#ECFDF5"
+              iconColor="#059669"
+            />
+            <ActionPlan plan={result.plan30Days} />
+          </section>
+        )}
 
         {/* ================================================
             CTA Frames Académie
