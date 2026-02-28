@@ -101,13 +101,14 @@ export async function analyzePortfolio(
     temperature: 0,
     // Prompt caching : le system prompt statique est mis en cache après le 1er appel
     // Coût cache write : $3.75/M (1x) → cache read : $0.30/M (−90% sur appels suivants)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     system: [
       {
         type: "text",
         text: SYSTEM_PROMPT,
         cache_control: { type: "ephemeral" },
       },
-    ],
+    ] as any,
     messages: [
       { role: "user", content: contentMessage },
       { role: "assistant", content: "{" }, // prefill → force JSON direct, pas de markdown
