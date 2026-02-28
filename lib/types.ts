@@ -36,7 +36,7 @@ export interface AnalysisResult {
   verdict: string;
   axes: AxisResult[];
   quickWins: QuickWin[];
-  plan30Days: ActionPlan;
+  plan30Days?: ActionPlan;
   analyzedAt: string;
   previousScore?: PreviousScore | null;
   fromCache?: boolean;

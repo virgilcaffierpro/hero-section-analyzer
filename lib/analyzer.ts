@@ -66,7 +66,8 @@ NIVEAUX :
 - "transition" : 41-70 (bonnes bases mais pas encore optimisé pour convertir)
 - "vend" : 71-100 (site qui travaille activement à attirer et convaincre des clients)
 
-Retourne UNIQUEMENT un objet JSON valide, compact, sans indentation ni espaces superflus (sans markdown, sans backticks, sans commentaires) :
+Retourne UNIQUEMENT un objet JSON valide, compact, sans indentation ni espaces superflus (sans markdown, sans backticks, sans commentaires).
+IMPORTANT — sois concis : chaque valeur de string doit faire maximum 120 caractères.
 
 {
   "totalScore": <nombre entier 0-100>,
@@ -140,28 +141,23 @@ Retourne UNIQUEMENT un objet JSON valide, compact, sans indentation ni espaces s
   "quickWins": [
     {
       "title": "<titre court et percutant>",
-      "description": "<description actionnable en 2-3 phrases — dis exactement QUOI faire et POURQUOI ça va marcher>",
+      "description": "<QUOI faire exactement et POURQUOI ça va marcher — max 120 chars>",
       "effort": "<faible|moyen|élevé>",
       "impact": "<fort|moyen|faible>"
     },
     {
       "title": "<titre>",
-      "description": "<description>",
+      "description": "<description — max 120 chars>",
       "effort": "<faible|moyen|élevé>",
       "impact": "<fort|moyen|faible>"
     },
     {
       "title": "<titre>",
-      "description": "<description>",
+      "description": "<description — max 120 chars>",
       "effort": "<faible|moyen|élevé>",
       "impact": "<fort|moyen|faible>"
     }
-  ],
-  "plan30Days": {
-    "week1": ["<action urgente 1>", "<action urgente 2>", "<action urgente 3>"],
-    "week2_3": ["<action d'optimisation 1>", "<action d'optimisation 2>", "<action d'optimisation 3>"],
-    "week4": ["<test à mettre en place 1>", "<test à mettre en place 2>"]
-  }
+  ]
 }`;
 }
 
@@ -173,7 +169,7 @@ export async function analyzePortfolio(
 
   const client = new Anthropic({
     apiKey: process.env.ANTHROPIC_API_KEY,
-    timeout: 50000, // 50s — cold start(3s) + scraping(5s) + Claude(50s) = 58s < 60s Vercel
+    timeout: 55000, // 55s — scraping(5s) + Sonnet(~35s) = ~40s well within Vercel 60s limit
     maxRetries: 0,  // no retries
   });
 
