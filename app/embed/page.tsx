@@ -111,27 +111,35 @@ interface HistoryEntry {
   analyzedAt: string;
 }
 
-function HistoryPanel({ onReanalyze }: { onReanalyze: (url: string, force: boolean) => void }) {
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [loaded, setLoaded] = useState(false);
+const LS_KEY = "pa-history";
 
-  useEffect(() => {
-    fetch("/api/history")
-      .then((r) => r.json())
-      .then((data: HistoryEntry[]) => {
-        const seen = new Set<string>();
-        const deduped = data.filter((e) => {
-          if (seen.has(e.normalizedUrl)) return false;
-          seen.add(e.normalizedUrl);
-          return true;
-        });
-        setHistory(deduped.slice(0, 5));
-        setLoaded(true);
-      })
-      .catch(() => setLoaded(true));
-  }, []);
+function normalizeUrl(url: string): string {
+  try {
+    const u = new URL(url.startsWith("http") ? url : `https://${url}`);
+    const hostname = u.hostname.replace(/^www\./, "");
+    const pathname = u.pathname.replace(/\/+$/, "") || "";
+    return (hostname + pathname).toLowerCase();
+  } catch {
+    return url.toLowerCase().trim().replace(/\/+$/, "");
+  }
+}
 
-  if (!loaded || history.length === 0) return null;
+function loadHistory(): HistoryEntry[] {
+  try {
+    return JSON.parse(localStorage.getItem(LS_KEY) ?? "[]");
+  } catch { return []; }
+}
+
+function saveToHistory(entry: HistoryEntry): HistoryEntry[] {
+  const all = loadHistory();
+  const filtered = all.filter((e) => e.normalizedUrl !== entry.normalizedUrl);
+  const updated = [entry, ...filtered].slice(0, 10);
+  localStorage.setItem(LS_KEY, JSON.stringify(updated));
+  return updated;
+}
+
+function HistoryPanel({ history, onReanalyze }: { history: HistoryEntry[]; onReanalyze: (url: string, force: boolean) => void }) {
+  if (!history || history.length === 0) return null;
 
   const levelColor = (level: string) => {
     if (level === "vend") return "#059669";
@@ -183,7 +191,7 @@ function HistoryPanel({ onReanalyze }: { onReanalyze: (url: string, force: boole
   );
 }
 
-function EmbedInput({ onAnalyze }: { onAnalyze: (url: string, force?: boolean) => void }) {
+function EmbedInput({ onAnalyze, history }: { onAnalyze: (url: string, force?: boolean) => void; history: HistoryEntry[] }) {
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
 
@@ -234,7 +242,7 @@ function EmbedInput({ onAnalyze }: { onAnalyze: (url: string, force?: boolean) =
           </div>
         ))}
       </div>
-      <HistoryPanel onReanalyze={onAnalyze} />
+      <HistoryPanel history={history} onReanalyze={onAnalyze} />
     </div>
   );
 }
@@ -260,6 +268,11 @@ export default function EmbedPage() {
   const [url, setUrl] = useState("");
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState("");
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+
+  useEffect(() => {
+    setHistory(loadHistory());
+  }, []);
 
   const handleAnalyze = useCallback(async (portfolioUrl: string, force = false) => {
     setUrl(portfolioUrl);
@@ -282,6 +295,14 @@ export default function EmbedPage() {
       if (!res.ok) throw new Error(data.error || "Erreur serveur.");
       setResult(data);
       setState("results");
+      const entry: HistoryEntry = {
+        url: portfolioUrl,
+        normalizedUrl: normalizeUrl(portfolioUrl),
+        totalScore: data.totalScore,
+        level: data.level,
+        analyzedAt: data.analyzedAt,
+      };
+      setHistory(saveToHistory(entry));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur inconnue.");
       setState("error");
@@ -305,7 +326,7 @@ export default function EmbedPage() {
             </p>
           </div>
           <div className="card">
-            <EmbedInput onAnalyze={handleAnalyze} />
+            <EmbedInput onAnalyze={handleAnalyze} history={history} />
           </div>
         </div>
       )}
