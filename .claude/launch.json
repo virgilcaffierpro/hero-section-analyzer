@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Portfolio Analyzer (dev)",
+      "runtimeExecutable": "/Users/virgilcaffier/.nvm/versions/node/v20.20.0/bin/node",
+      "runtimeArgs": ["/Users/virgilcaffier/Documents/site analyzer/node_modules/.bin/next", "dev"],
+      "port": 3000
+    }
+  ]
+}
