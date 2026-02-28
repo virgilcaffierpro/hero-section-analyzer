@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { ArrowRight, AlertCircle, RefreshCw, Zap, ExternalLink } from "lucide-react";
+import { ArrowRight, AlertCircle, RefreshCw, ExternalLink } from "lucide-react";
 import type { AnalysisResult } from "@/lib/types";
 import ResultsDashboard from "@/components/ResultsDashboard";
 
@@ -122,16 +122,6 @@ function EmbedInput({ onAnalyze }: { onAnalyze: (url: string) => void }) {
 
   return (
     <div className="p-6">
-      <div className="flex items-center gap-2 mb-5">
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "var(--accent)" }}>
-          <Zap size={13} color="white" />
-        </div>
-        <div>
-          <h2 className="font-bold text-base leading-tight" style={{ color: "var(--text-primary)" }}>Analyse ton portfolio</h2>
-          <p className="text-xs" style={{ color: "var(--text-muted)" }}>Audit IA gratuit • 60 secondes</p>
-        </div>
-      </div>
-
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
           <input
@@ -156,8 +146,8 @@ function EmbedInput({ onAnalyze }: { onAnalyze: (url: string) => void }) {
         </button>
       </form>
 
-      <div className="mt-4 grid grid-cols-3 gap-2">
-        {[{ icon: "🔍", label: "7 axes" }, { icon: "⏱", label: "30–60 sec" }, { icon: "🔒", label: "Sans stockage" }].map((item, i) => (
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        {[{ icon: "🔍", label: "7 axes" }, { icon: "⏱", label: "30–60 sec" }].map((item, i) => (
           <div key={i} className="text-center p-2 rounded-xl" style={{ background: "var(--bg-muted)", border: "1px solid var(--border)" }}>
             <div className="text-base mb-0.5">{item.icon}</div>
             <p className="text-xs" style={{ color: "var(--text-secondary)" }}>{item.label}</p>
