@@ -297,10 +297,23 @@ export default function EmbedPage() {
   const [error, setError] = useState("");
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [limitReached, setLimitReached] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     setHistory(loadHistory());
-    setLimitReached(!canAnalyzeToday());
+
+    // Check admin IP → si admin, pas de limite
+    fetch("/api/is-admin")
+      .then((r) => r.json())
+      .then((data) => {
+        const admin = data?.admin === true;
+        setIsAdmin(admin);
+        if (!admin) setLimitReached(!canAnalyzeToday());
+      })
+      .catch(() => {
+        setLimitReached(!canAnalyzeToday());
+      });
+
     // Restore last result on refresh, unless user explicitly chose to go back to input
     try {
       const userReset = sessionStorage.getItem("pa-reset");
@@ -335,8 +348,10 @@ export default function EmbedPage() {
       if (!res.ok) throw new Error(data.error || "Erreur serveur.");
       setResult(data);
       setState("results");
-      markAnalyzedToday();
-      setLimitReached(true);
+      if (!isAdmin) {
+        markAnalyzedToday();
+        setLimitReached(true);
+      }
       try { localStorage.setItem(LS_LAST_RESULT, JSON.stringify({ result: data, url: portfolioUrl })); } catch {}
       const entry: HistoryEntry = {
         url: portfolioUrl,
@@ -350,7 +365,7 @@ export default function EmbedPage() {
       setError(err instanceof Error ? err.message : "Erreur inconnue.");
       setState("error");
     }
-  }, []);
+  }, [isAdmin]);
 
   function handleReset() {
     setState("input"); setError(""); setResult(null);
