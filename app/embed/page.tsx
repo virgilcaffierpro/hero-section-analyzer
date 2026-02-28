@@ -221,14 +221,25 @@ export default function EmbedPage() {
   function handleForceReanalyze() { handleAnalyze(url, true); }
 
   return (
-    <div style={{ background: "transparent", minHeight: "100vh" }}>
+    <div style={{ background: "transparent", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 16px" }}>
       {state === "input" && (
-        <div className="card m-4" style={{ maxWidth: 480, margin: "16px auto" }}>
-          <EmbedInput onAnalyze={handleAnalyze} />
+        <div style={{ width: "100%", maxWidth: 480 }}>
+          <div className="text-center mb-6">
+            <span className="inline-block text-xs font-semibold tracking-widest uppercase px-3 py-1 rounded-full mb-4" style={{ background: "var(--accent-light)", color: "var(--accent)" }}>
+              Audit gratuit
+            </span>
+            <h1 className="text-2xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>Analyse ton portfolio</h1>
+            <p className="text-sm" style={{ color: "var(--text-secondary)", lineHeight: "1.6" }}>
+              Colle l'URL de ton site. L'IA va analyser ton message, tes CTAs, ta preuve sociale — et te dire ce qui bloque tes conversions.
+            </p>
+          </div>
+          <div className="card">
+            <EmbedInput onAnalyze={handleAnalyze} />
+          </div>
         </div>
       )}
       {state === "loading" && (
-        <div className="card m-4" style={{ maxWidth: 480, margin: "16px auto" }}>
+        <div className="card" style={{ width: "100%", maxWidth: 480 }}>
           <EmbedLoading url={url} />
         </div>
       )}
@@ -236,7 +247,7 @@ export default function EmbedPage() {
         <ResultsDashboard result={result} onReanalyze={handleReset} onForceReanalyze={handleForceReanalyze} />
       )}
       {state === "error" && (
-        <div className="card m-4" style={{ maxWidth: 480, margin: "16px auto" }}>
+        <div className="card" style={{ width: "100%", maxWidth: 480 }}>
           <EmbedError error={error} onRetry={handleReset} />
         </div>
       )}
