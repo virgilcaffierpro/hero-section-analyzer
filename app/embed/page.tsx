@@ -153,7 +153,12 @@ function saveToHistory(entry: HistoryEntry): HistoryEntry[] {
   return updated;
 }
 
-function HistoryPanel({ history, onReanalyze }: { history: HistoryEntry[]; onReanalyze: (url: string, force: boolean) => void }) {
+function HistoryPanel({ history, onReanalyze, onViewResult, limitReached }: {
+  history: HistoryEntry[];
+  onReanalyze: (url: string, force: boolean) => void;
+  onViewResult: () => void;
+  limitReached: boolean;
+}) {
   if (!history || history.length === 0) return null;
 
   const levelColor = (level: string) => {
@@ -176,7 +181,7 @@ function HistoryPanel({ history, onReanalyze }: { history: HistoryEntry[]; onRea
             key={i}
             className="flex items-center gap-3 p-3 rounded-xl cursor-pointer"
             style={{ background: "var(--bg-muted)", border: "1px solid var(--border)" }}
-            onClick={() => onReanalyze(entry.url, false)}
+            onClick={() => limitReached ? onViewResult() : onReanalyze(entry.url, false)}
           >
             <div className="flex-1 min-w-0">
               <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>
@@ -190,14 +195,16 @@ function HistoryPanel({ history, onReanalyze }: { history: HistoryEntry[]; onRea
               <span className="font-bold text-sm" style={{ color: levelColor(entry.level) }}>
                 {entry.totalScore}/100
               </span>
-              <button
-                className="p-1.5 rounded-lg"
-                style={{ background: "var(--accent-light)", color: "var(--accent)", border: "1px solid var(--accent-border)" }}
-                onClick={(e) => { e.stopPropagation(); onReanalyze(entry.url, true); }}
-                title="Forcer une nouvelle analyse"
-              >
-                <RefreshCw size={11} />
-              </button>
+              {!limitReached && (
+                <button
+                  className="p-1.5 rounded-lg"
+                  style={{ background: "var(--accent-light)", color: "var(--accent)", border: "1px solid var(--accent-border)" }}
+                  onClick={(e) => { e.stopPropagation(); onReanalyze(entry.url, true); }}
+                  title="Forcer une nouvelle analyse"
+                >
+                  <RefreshCw size={11} />
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -206,7 +213,7 @@ function HistoryPanel({ history, onReanalyze }: { history: HistoryEntry[]; onRea
   );
 }
 
-function EmbedInput({ onAnalyze, history, limitReached }: { onAnalyze: (url: string, force?: boolean) => void; history: HistoryEntry[]; limitReached: boolean }) {
+function EmbedInput({ onAnalyze, history, limitReached, onViewResult }: { onAnalyze: (url: string, force?: boolean) => void; history: HistoryEntry[]; limitReached: boolean; onViewResult: () => void }) {
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
 
@@ -262,7 +269,7 @@ function EmbedInput({ onAnalyze, history, limitReached }: { onAnalyze: (url: str
           </div>
         ))}
       </div>
-      <HistoryPanel history={history} onReanalyze={onAnalyze} />
+      <HistoryPanel history={history} onReanalyze={onAnalyze} onViewResult={onViewResult} limitReached={limitReached} />
     </div>
   );
 }
@@ -349,6 +356,17 @@ export default function EmbedPage() {
     try { localStorage.removeItem(LS_LAST_RESULT); } catch {}
   }
   function handleForceReanalyze() { handleAnalyze(url, true); }
+  function handleViewLastResult() {
+    try {
+      const saved = localStorage.getItem(LS_LAST_RESULT);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setResult(parsed.result);
+        setUrl(parsed.url);
+        setState("results");
+      }
+    } catch {}
+  }
 
   return (
     <div style={{ background: "transparent", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 16px" }}>
@@ -364,7 +382,7 @@ export default function EmbedPage() {
             </p>
           </div>
           <div className="card">
-            <EmbedInput onAnalyze={handleAnalyze} history={history} limitReached={limitReached} />
+            <EmbedInput onAnalyze={handleAnalyze} history={history} limitReached={limitReached} onViewResult={handleViewLastResult} />
           </div>
         </div>
       )}
