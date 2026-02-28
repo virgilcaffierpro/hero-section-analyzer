@@ -339,6 +339,7 @@ function QuickWinCard({ win, index }: { win: QuickWin; index: number }) {
 // ============================================================
 
 function ActionPlan({ plan }: { plan: AnalysisResult["plan30Days"] }) {
+  if (!plan) return null;
   const weeks = [
     {
       label: "Semaine 1",
