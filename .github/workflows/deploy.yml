@@ -1,0 +1,47 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Vercel
+        run: |
+          COMMIT_SHA="${{ github.sha }}"
+          echo "Deploying commit $COMMIT_SHA to production..."
+
+          RESPONSE=$(curl -s -X POST "https://api.vercel.com/v13/deployments" \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"name\": \"portfolio-analyzer-free\",
+              \"project\": \"prj_tF6IXjKBH4n3XPEBlN5bv97L8aE7\",
+              \"target\": \"production\",
+              \"gitSource\": {
+                \"type\": \"github\",
+                \"org\": \"virgilcaffierpro\",
+                \"repo\": \"portfolio-analyzer-free\",
+                \"ref\": \"main\",
+                \"sha\": \"$COMMIT_SHA\"
+              }
+            }")
+
+          echo "$RESPONSE" | python3 -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          print('Deployment ID:', d.get('id'))
+          print('Status:', d.get('readyState') or d.get('status'))
+          url = d.get('url')
+          if url:
+              print('URL: https://' + url)
+          err = d.get('error')
+          if err:
+              print('ERROR:', err)
+              exit(1)
+          "
