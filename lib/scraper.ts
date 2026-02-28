@@ -135,6 +135,27 @@ export async function scrapeWebsite(rawUrl: string): Promise<ScrapedContent> {
     // Main body text (cleaned, limited)
     const bodyText = cleanText($("main, article, .content, body").text()).substring(0, 2000);
 
+    // Dedicated pricing extractor — scan full text for price patterns
+    // Captures prices the bodyText limit would otherwise miss
+    const fullText = cleanText($("body").text());
+    const priceRegex = /\d[\d\s.,]*\s*[€$£]/g;
+    const priceMatches: string[] = [];
+    let match;
+    while ((match = priceRegex.exec(fullText)) !== null) {
+      const price = match[0].trim();
+      if (!priceMatches.includes(price)) {
+        // Get ~40 chars of context after the price
+        const ctx = fullText.substring(match.index, match.index + 60).replace(/\s+/g, " ").trim();
+        priceMatches.push(ctx);
+      }
+      if (priceMatches.length >= 8) break;
+    }
+    // Also try CSS-class-based pricing sections
+    const pricingSection = cleanText(
+      $('[class*="price"], [class*="pricing"], [class*="tarif"], [class*="plan-"], [id*="price"], [id*="tarif"]').text()
+    ).substring(0, 300);
+    const pricingText = pricingSection || priceMatches.join(" | ").substring(0, 400);
+
     return {
       title,
       metaDescription,
@@ -149,6 +170,7 @@ export async function scrapeWebsite(rawUrl: string): Promise<ScrapedContent> {
       hasCaseStudies,
       servicesText,
       aboutText,
+      pricingText,
     };
   } catch (error) {
     const errorMessage =
@@ -169,6 +191,7 @@ export async function scrapeWebsite(rawUrl: string): Promise<ScrapedContent> {
       hasCaseStudies: false,
       servicesText: "",
       aboutText: "",
+      pricingText: "",
       error: `Impossible d'accéder au site : ${errorMessage}`,
     };
   }

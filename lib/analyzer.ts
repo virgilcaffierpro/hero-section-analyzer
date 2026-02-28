@@ -25,6 +25,9 @@ ${content.servicesText || "Aucune section services/offre clairement identifiable
 === SECTION À PROPOS ===
 ${content.aboutText || "Aucune section à propos clairement identifiable"}
 
+=== PRIX DÉTECTÉS ===
+${content.pricingText || "Aucun prix clairement identifiable dans le HTML statique (site JS-rendu probable)"}
+
 === TEXTE PRINCIPAL DU SITE ===
 ${content.bodyText || "Contenu non extractible (site probablement en JavaScript pur)"}
 `.trim();

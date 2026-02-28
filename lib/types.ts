@@ -56,5 +56,6 @@ export interface ScrapedContent {
   hasCaseStudies: boolean;
   servicesText: string;
   aboutText: string;
+  pricingText: string;
   error?: string;
 }
