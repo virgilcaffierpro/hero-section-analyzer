@@ -181,11 +181,19 @@ export async function analyzePortfolio(
     model: "claude-3-5-haiku-20241022",
     max_tokens: 8192,
     temperature: 0,
-    messages: [{ role: "user", content: prompt }],
+    // Prefill forces Claude to start directly with { — no markdown wrapping possible
+    messages: [
+      { role: "user", content: prompt },
+      { role: "assistant", content: "{" },
+    ],
   });
 
-  const responseText =
-    message.content[0].type === "text" ? message.content[0].text : "";
+  // Prepend the prefill character we injected
+  const rawText = message.content[0].type === "text" ? message.content[0].text : "";
+  const responseText = "{" + rawText;
+
+  // Log for Vercel diagnostics
+  console.log("[analyzer] stop_reason:", message.stop_reason, "| output_tokens:", message.usage.output_tokens, "| response_len:", responseText.length);
 
   // Clean potential markdown wrapping
   let cleanedResponse = responseText.trim();
@@ -231,7 +239,20 @@ export async function analyzePortfolio(
   }
   cleanedResponse = fixed;
 
-  const analysisData = JSON.parse(cleanedResponse);
+  let analysisData: ReturnType<typeof JSON.parse>;
+  try {
+    analysisData = JSON.parse(cleanedResponse);
+  } catch (parseErr) {
+    const msg = parseErr instanceof Error ? parseErr.message : String(parseErr);
+    const pos = parseInt(msg.match(/position (\d+)/)?.[1] ?? "0");
+    console.error("[analyzer] JSON parse failed:", msg);
+    console.error("[analyzer] response_len:", cleanedResponse.length, "| error_pos:", pos);
+    if (pos > 0) {
+      console.error("[analyzer] context:", JSON.stringify(cleanedResponse.substring(Math.max(0, pos - 80), pos + 40)));
+    }
+    console.error("[analyzer] last 120 chars:", JSON.stringify(cleanedResponse.slice(-120)));
+    throw parseErr;
+  }
 
   // Validate and ensure totalScore matches sum of axes
   const computedTotal = analysisData.axes.reduce(
