@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { ArrowRight, AlertCircle, RefreshCw, ExternalLink } from "lucide-react";
+import { ArrowRight, AlertCircle, RefreshCw, ExternalLink, Clock } from "lucide-react";
 import type { AnalysisResult } from "@/lib/types";
 import ResultsDashboard from "@/components/ResultsDashboard";
 
@@ -103,7 +103,87 @@ function EmbedLoading({ url }: { url: string }) {
   );
 }
 
-function EmbedInput({ onAnalyze }: { onAnalyze: (url: string) => void }) {
+interface HistoryEntry {
+  url: string;
+  normalizedUrl: string;
+  totalScore: number;
+  level: string;
+  analyzedAt: string;
+}
+
+function HistoryPanel({ onReanalyze }: { onReanalyze: (url: string, force: boolean) => void }) {
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/history")
+      .then((r) => r.json())
+      .then((data: HistoryEntry[]) => {
+        const seen = new Set<string>();
+        const deduped = data.filter((e) => {
+          if (seen.has(e.normalizedUrl)) return false;
+          seen.add(e.normalizedUrl);
+          return true;
+        });
+        setHistory(deduped.slice(0, 5));
+        setLoaded(true);
+      })
+      .catch(() => setLoaded(true));
+  }, []);
+
+  if (!loaded || history.length === 0) return null;
+
+  const levelColor = (level: string) => {
+    if (level === "vend") return "#059669";
+    if (level === "transition") return "#D97706";
+    return "#DC2626";
+  };
+
+  return (
+    <div className="mt-4">
+      <div className="flex items-center gap-2 mb-2">
+        <Clock size={12} style={{ color: "var(--text-muted)" }} />
+        <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+          Analyses récentes
+        </span>
+      </div>
+      <div className="space-y-2">
+        {history.map((entry, i) => (
+          <div
+            key={i}
+            className="flex items-center gap-3 p-3 rounded-xl cursor-pointer"
+            style={{ background: "var(--bg-muted)", border: "1px solid var(--border)" }}
+            onClick={() => onReanalyze(entry.url, false)}
+          >
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>
+                {entry.normalizedUrl}
+              </p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                {new Date(entry.analyzedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="font-bold text-sm" style={{ color: levelColor(entry.level) }}>
+                {entry.totalScore}/100
+              </span>
+              <button
+                className="p-1.5 rounded-lg"
+                style={{ background: "var(--accent-light)", color: "var(--accent)", border: "1px solid var(--accent-border)" }}
+                onClick={(e) => { e.stopPropagation(); onReanalyze(entry.url, true); }}
+                title="Forcer une nouvelle analyse"
+              >
+                <RefreshCw size={11} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function EmbedInput({ onAnalyze }: { onAnalyze: (url: string, force?: boolean) => void }) {
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
 
@@ -154,6 +234,7 @@ function EmbedInput({ onAnalyze }: { onAnalyze: (url: string) => void }) {
           </div>
         ))}
       </div>
+      <HistoryPanel onReanalyze={onAnalyze} />
     </div>
   );
 }
