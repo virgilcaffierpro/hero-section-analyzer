@@ -97,7 +97,7 @@ export async function analyzePortfolio(
 
   const message = await client.messages.create({
     model: "claude-sonnet-4-5",
-    max_tokens: 1500,   // était 4096 — la réponse JSON réelle fait ~700-900 tokens
+    max_tokens: 2500,   // était 4096 → 1500 trop court (JSON tronqué) → 2500 safe
     temperature: 0,
     // Prompt caching : le system prompt statique est mis en cache après le 1er appel
     // Coût cache write : $3.75/M (1x) → cache read : $0.30/M (−90% sur appels suivants)
