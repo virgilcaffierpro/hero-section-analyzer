@@ -8,7 +8,7 @@ export const maxDuration = 60;
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { url, force = false } = body;
+    const { url, target = "", force = false } = body;
 
     if (!url || typeof url !== "string") {
       return NextResponse.json({ error: "Une URL valide est requise." }, { status: 400 });
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     const scrapedContent = await scrapeWebsite(trimmedUrl);
 
     // Step 2: Analyze with Claude
-    const result = await analyzePortfolio(trimmedUrl, scrapedContent);
+    const result = await analyzePortfolio(trimmedUrl, scrapedContent, typeof target === "string" ? target.trim() : "");
 
     // Attach previous score for delta display
     const resultWithHistory = {

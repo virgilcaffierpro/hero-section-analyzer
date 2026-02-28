@@ -18,6 +18,7 @@ RÈGLES D'ANALYSE ABSOLUES :
 7. Si les données sont insuffisantes pour un axe, indique-le et note de façon conservatrice
 8. PÉRIMÈTRE STRICT : toutes tes recommandations (quickAction, quickWins, blocking) doivent porter UNIQUEMENT sur la page analysée. Ne suggère JAMAIS de créer une nouvelle page ou de modifier une autre page du site. Si un élément manque (témoignages, offre, CTA…), recommande de l'ajouter sur CETTE page, pas sur une autre page inexistante.
 9. TÉMOIGNAGES : si le champ TÉMOIGNAGES indique un nombre > 0, cela signifie que des témoignages sont présents et visibles sur la page. Ne dis JAMAIS qu'il n'y a pas de témoignages dans ce cas. Évalue plutôt leur QUALITÉ (résultats business concrets, spécificité, nom + titre de l'auteur, photo, logo client) plutôt que leur présence.
+10. CIBLE DÉCLARÉE : si le champ CIBLE est renseigné, c'est la cible que le freelance veut atteindre. Utilise-la pour évaluer l'axe "Alignement cible / message" : est-ce que le vocabulaire, les promesses, les témoignages, les prix et le ton du site parlent VRAIMENT à cette cible ? Sois précis et factuel dans l'écart constaté entre cible déclarée et message perçu. Si CIBLE est vide, évalue l'alignement sur la base de la cible que le site semble vouloir atteindre.
 
 SCORES ET PONDÉRATIONS :
 - Message de positionnement : /20
@@ -43,9 +44,10 @@ FORMAT EXACT DE RÉPONSE (respecte ces ids, ces champs, cet ordre) :
 // ── Dynamic content builder (par appel, non caché) ────────────────────────────
 // Réduit vs avant : bodyText 2000→1200 chars, services/about 600→350 chars,
 // format compact sans labels verbeux → ~30% de tokens en moins côté contenu.
-function buildContentMessage(url: string, content: ScrapedContent): string {
+function buildContentMessage(url: string, content: ScrapedContent, target: string): string {
   const lines: string[] = [
     `URL: ${url}`,
+    `CIBLE: ${target || "non renseignée"}`,
     `TITRE: ${content.title || "—"}`,
     `META: ${content.metaDescription || "—"}`,
     `H1: ${content.h1.slice(0, 3).join(" | ") || "—"}`,
@@ -79,9 +81,10 @@ function buildContentMessage(url: string, content: ScrapedContent): string {
 
 export async function analyzePortfolio(
   url: string,
-  content: ScrapedContent
+  content: ScrapedContent,
+  target = ""
 ): Promise<AnalysisResult> {
-  const contentMessage = buildContentMessage(url, content);
+  const contentMessage = buildContentMessage(url, content, target);
 
   // Estimation tokens avant envoi (4 chars ≈ 1 token)
   const estimatedSystemTokens = Math.round(SYSTEM_PROMPT.length / 4);

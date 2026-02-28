@@ -213,8 +213,9 @@ function HistoryPanel({ history, onReanalyze, onViewResult, limitReached }: {
   );
 }
 
-function EmbedInput({ onAnalyze, history, limitReached, onViewResult }: { onAnalyze: (url: string, force?: boolean) => void; history: HistoryEntry[]; limitReached: boolean; onViewResult: () => void }) {
+function EmbedInput({ onAnalyze, history, limitReached, onViewResult }: { onAnalyze: (url: string, target: string, force?: boolean) => void; history: HistoryEntry[]; limitReached: boolean; onViewResult: () => void }) {
   const [url, setUrl] = useState("");
+  const [target, setTarget] = useState("");
   const [error, setError] = useState("");
 
   function handleSubmit(e: React.FormEvent) {
@@ -224,7 +225,7 @@ function EmbedInput({ onAnalyze, history, limitReached, onViewResult }: { onAnal
     const withProtocol = trimmed.startsWith("http") ? trimmed : `https://${trimmed}`;
     try {
       new URL(withProtocol);
-      onAnalyze(trimmed);
+      onAnalyze(trimmed, target.trim());
     } catch {
       setError("URL invalide. Ex : https://monportfolio.com");
     }
@@ -234,6 +235,9 @@ function EmbedInput({ onAnalyze, history, limitReached, onViewResult }: { onAnal
     <div className="p-6">
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
+          <label className="block text-xs font-medium mb-1" style={{ color: "var(--text-secondary)" }}>
+            URL de ton portfolio
+          </label>
           <input
             type="text"
             className="input-field text-sm"
@@ -249,6 +253,19 @@ function EmbedInput({ onAnalyze, history, limitReached, onViewResult }: { onAnal
               {error}
             </p>
           )}
+        </div>
+        <div>
+          <label className="block text-xs font-medium mb-1" style={{ color: "var(--text-secondary)" }}>
+            Ta cible <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(optionnel)</span>
+          </label>
+          <input
+            type="text"
+            className="input-field text-sm"
+            placeholder="Ex : entrepreneurs créatifs 30-50 ans, PME locales…"
+            value={target}
+            onChange={(e) => setTarget(e.target.value)}
+            autoComplete="off"
+          />
         </div>
         <button type="submit" className="btn-primary w-full justify-center py-3" disabled={!url.trim() || limitReached}>
           Analyser mon portfolio
@@ -269,7 +286,7 @@ function EmbedInput({ onAnalyze, history, limitReached, onViewResult }: { onAnal
           </div>
         ))}
       </div>
-      <HistoryPanel history={history} onReanalyze={onAnalyze} onViewResult={onViewResult} limitReached={limitReached} />
+      <HistoryPanel history={history} onReanalyze={(url) => onAnalyze(url, "", false)} onViewResult={onViewResult} limitReached={limitReached} />
     </div>
   );
 }
@@ -327,7 +344,7 @@ export default function EmbedPage() {
     } catch {}
   }, []);
 
-  const handleAnalyze = useCallback(async (portfolioUrl: string, force = false) => {
+  const handleAnalyze = useCallback(async (portfolioUrl: string, target = "", force = false) => {
     setUrl(portfolioUrl);
     setState("loading");
     setError("");
@@ -335,7 +352,7 @@ export default function EmbedPage() {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: portfolioUrl, force }),
+        body: JSON.stringify({ url: portfolioUrl, target, force }),
       });
       const text = await res.text();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -371,7 +388,7 @@ export default function EmbedPage() {
     setState("input"); setError(""); setResult(null);
     try { sessionStorage.setItem("pa-reset", "1"); } catch {}
   }
-  function handleForceReanalyze() { handleAnalyze(url, true); }
+  function handleForceReanalyze() { handleAnalyze(url, "", true); }
   function handleViewLastResult() {
     try {
       const saved = localStorage.getItem(LS_LAST_RESULT);
@@ -399,7 +416,7 @@ export default function EmbedPage() {
             </p>
           </div>
           <div className="card">
-            <EmbedInput onAnalyze={handleAnalyze} history={history} limitReached={limitReached} onViewResult={handleViewLastResult} />
+            <EmbedInput onAnalyze={(url, target, force) => handleAnalyze(url, target, force)} history={history} limitReached={limitReached} onViewResult={handleViewLastResult} />
           </div>
         </div>
       )}
