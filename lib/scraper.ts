@@ -1,7 +1,7 @@
 import * as cheerio from "cheerio";
 import type { ScrapedContent } from "./types";
 
-const TIMEOUT_MS = 8000;
+const TIMEOUT_MS = 5000;
 
 function normalizeUrl(url: string): string {
   if (!url.startsWith("http://") && !url.startsWith("https://")) {

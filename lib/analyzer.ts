@@ -171,7 +171,10 @@ export async function analyzePortfolio(
 ): Promise<AnalysisResult> {
   const prompt = buildPrompt(url, content);
 
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const client = new Anthropic({
+    apiKey: process.env.ANTHROPIC_API_KEY,
+    timeout: 30000, // 30s max — Vercel hobby caps at 60s total
+  });
 
   const message = await client.messages.create({
     model: "claude-haiku-4-5-20251001",
