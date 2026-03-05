@@ -56,12 +56,13 @@ async function fetchRenderedHtml(url: string): Promise<string> {
             // Cherche le bouton "suivant" du slider en cliquant les petits éléments interactifs
             // jusqu'à trouver celui qui change le témoignage affiché.
             const getQuoteKey = () => page.evaluate(() => {
-              const paras = document.querySelectorAll("p");
-              for (const p of paras) {
+              const paras = Array.from(document.querySelectorAll("p"));
+              const found = paras.find((p) => {
                 const t = (p.textContent || "").replace(/\s+/g, " ").trim();
-                if (/^["""«\u201C\u00AB'']/.test(t) && t.length > 40) return t.substring(0, 60);
-              }
-              return "";
+                return /^["""«\u201C\u00AB'']/.test(t) && t.length > 40;
+              });
+              if (!found) return "";
+              return (found.textContent || "").replace(/\s+/g, " ").trim().substring(0, 60);
             });
 
             const q0 = await getQuoteKey();
@@ -216,16 +217,13 @@ export async function scrapeWebsite(rawUrl: string): Promise<ScrapedContent> {
 
     const navExact = new Set(["suivant", "précédent", "previous", "next", "voir plus", "load more"]);
 
-    function isAttrib(t: string): boolean {
-      return (
-        t.length > 2 &&
-        t.length < 100 &&
-        /^[A-ZÉÀÈÙÂ]/.test(t) &&
-        !/^["""«\u201C\u00AB'']/.test(t)
-      );
-    }
+    const isAttrib = (t: string): boolean =>
+      t.length > 2 &&
+      t.length < 100 &&
+      /^[A-ZÉÀÈÙÂ]/.test(t) &&
+      !/^["""«\u201C\u00AB'']/.test(t);
 
-    function registerTestimonial(quote: string, attribParts: string[]): void {
+    const registerTestimonial = (quote: string, attribParts: string[]): void => {
       const key = quote.substring(0, 60);
       if (seenQuoteKeys.has(key)) return;
       seenQuoteKeys.add(key);
@@ -234,7 +232,7 @@ export async function scrapeWebsite(rawUrl: string): Promise<ScrapedContent> {
       if (combined.length > 60 && combined.length < 900) {
         patternBased.push(combined);
       }
-    }
+    };
 
     // ── Passe A : enfants directs d'un conteneur ─────────────────────────────────
     $("div, li, article").each((_, container) => {
@@ -314,11 +312,10 @@ export async function scrapeWebsite(rawUrl: string): Promise<ScrapedContent> {
       '[id*="social-proof"]',
     ].join(", ");
 
-    function deduplicateByContainment(texts: string[]): string[] {
-      return texts.filter((t, i) =>
+    const deduplicateByContainment = (texts: string[]): string[] =>
+      texts.filter((t, i) =>
         !texts.some((other, j) => i !== j && other.length > t.length * 1.5 && other.includes(t))
       );
-    }
 
     const selectorBased = patternBased.length === 0
       ? deduplicateByContainment(
