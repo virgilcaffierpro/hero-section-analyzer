@@ -13,6 +13,7 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
+  AlertTriangle,
 } from "lucide-react";
 import type { AnalysisResult, AxisResult, PortfolioLevel, QuickWin } from "@/lib/types";
 
@@ -152,7 +153,7 @@ function AxisProgressBar({ score, max, color }: { score: number; max: number; co
 // Axis Card
 // ============================================================
 
-function AxisCard({ axis, index }: { axis: AxisResult; index: number }) {
+function AxisCard({ axis, index, warning }: { axis: AxisResult; index: number; warning?: string }) {
   const [expanded, setExpanded] = useState(false);
   const color = getScoreColor(axis.score, axis.maxScore);
   const pct = (axis.score / axis.maxScore) * 100;
@@ -182,7 +183,7 @@ function AxisCard({ axis, index }: { axis: AxisResult; index: number }) {
               <h3 className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
                 {axis.name}
               </h3>
-              <div className="flex items-center gap-2 mt-0.5">
+              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                 <span className="font-bold text-lg" style={{ color }}>
                   {axis.score}
                 </span>
@@ -199,6 +200,16 @@ function AxisCard({ axis, index }: { axis: AxisResult; index: number }) {
                 >
                   {Math.round(pct)}%
                 </span>
+                {warning && !expanded && (
+                  <span
+                    className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full font-medium"
+                    style={{ background: "#FFF7ED", color: "#D97706", border: "1px solid #FED7AA" }}
+                    title={warning}
+                  >
+                    <AlertTriangle size={10} />
+                    Données partielles
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -217,6 +228,24 @@ function AxisCard({ axis, index }: { axis: AxisResult; index: number }) {
         {/* Expanded content */}
         {expanded && (
           <div className="mt-5 space-y-4 animate-fadeIn">
+            {/* Scraping warning */}
+            {warning && (
+              <div
+                className="p-3.5 rounded-xl flex gap-3"
+                style={{ background: "#FFF7ED", border: "1px solid #FED7AA" }}
+              >
+                <AlertTriangle size={16} style={{ color: "#D97706", flexShrink: 0, marginTop: 2 }} />
+                <div>
+                  <p className="text-xs font-semibold mb-1" style={{ color: "#D97706" }}>
+                    Données non détectées sur ta page
+                  </p>
+                  <p className="text-xs leading-relaxed" style={{ color: "#92400E" }}>
+                    {warning}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* What works */}
             {axis.working.length > 0 && (
               <div>
@@ -634,7 +663,7 @@ export default function ResultsDashboard({
           />
           <div className="space-y-3">
             {result.axes.map((axis, i) => (
-              <AxisCard key={axis.id} axis={axis} index={i} />
+              <AxisCard key={axis.id} axis={axis} index={i} warning={result.scrapingWarnings?.[axis.id]} />
             ))}
           </div>
         </section>

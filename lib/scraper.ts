@@ -53,13 +53,13 @@ async function fetchRenderedHtml(url: string): Promise<string> {
 
             let combinedBody = await page.evaluate(() => document.body.innerHTML);
 
-            // Cherche le bouton "suivant" du slider en cliquant les petits éléments interactifs
-            // jusqu'à trouver celui qui change le témoignage affiché.
+            // Cherche le bouton "suivant" du slider en cliquant les petits éléments interactifs.
+            // Cherche dans p ET headings (certains sites mettent la citation dans un <h2>).
             const getQuoteKey = () => page.evaluate(() => {
-              const paras = Array.from(document.querySelectorAll("p"));
-              const found = paras.find((p) => {
-                const t = (p.textContent || "").replace(/\s+/g, " ").trim();
-                return /^["""«\u201C\u00AB'']/.test(t) && t.length > 40;
+              const els = Array.from(document.querySelectorAll("p, h1, h2, h3, h4"));
+              const found = els.find((el) => {
+                const t = (el.textContent || "").replace(/\s+/g, " ").trim();
+                return /^[\u201C\u201D\u00AB"\u2018\u2019]/.test(t) && t.length > 20 && t.length < 600;
               });
               if (!found) return "";
               return (found.textContent || "").replace(/\s+/g, " ").trim().substring(0, 60);
@@ -68,31 +68,41 @@ async function fetchRenderedHtml(url: string): Promise<string> {
             const q0 = await getQuoteKey();
             let nextBtnSel = "";
 
-            // Phase 1 : trouve le bouton qui avance le slider
+            // Phase 1 : parcourt tous les petits éléments cliquables sans break.
+            // Couvre les sliders à dots (chaque dot = un slide différent, ex: floey.fr)
+            // ET les boutons "next" répétables (ex: Framer next button, ex: Noémie).
+            // Limite : 100 candidats valides max (texte ≤ 5 chars + bounding box visible).
             if (q0) {
-              const candidates = await page.$$("[class*='framer'], button, [role='button']");
+              const candidates = await page.$$("[class*=\'framer\'], button, [role=\'button\']");
+              const seenKeys1 = new Set([q0]);
+              let tried = 0;
               for (const el of candidates) {
+                if (tried >= 100) break;
                 try {
                   const txt = ((await el.textContent()) || "").trim();
-                  if (txt.length > 5) continue; // ignore les éléments avec du texte visible
+                  if (txt.length > 5) continue;
                   const box = await el.boundingBox();
                   if (!box || box.width < 5 || box.height < 5) continue;
+                  tried++;
                   await el.click({ timeout: 400 });
                   await page.waitForTimeout(400);
-                  const q1 = await getQuoteKey();
-                  if (q1 && q1 !== q0) {
-                    nextBtnSel = await el.evaluate((e) => {
-                      const cls = e.className?.toString() || "";
-                      return cls ? `[class="${cls}"]` : "";
-                    });
+                  const key = await getQuoteKey();
+                  if (key && !seenKeys1.has(key)) {
+                    seenKeys1.add(key);
                     combinedBody += await page.evaluate(() => document.body.innerHTML);
-                    break;
+                    if (!nextBtnSel) {
+                      nextBtnSel = await el.evaluate((e) => {
+                        const cls = e.className?.toString() || "";
+                        return cls ? `[class="${cls}"]` : "";
+                      });
+                    }
                   }
                 } catch { /* skip */ }
               }
             }
 
-            // Phase 2 : si trouvé, continue à cliquer pour capturer les slides restants
+            // Phase 2 : si un bouton "next" répétable a été identifié, continue à cliquer.
+            // Couvre les boutons qui avancent slide par slide (ex: Framer next button).
             if (nextBtnSel) {
               const MAX_SLIDES = 10;
               const seenKeys = new Set([q0, await getQuoteKey()]);
@@ -107,6 +117,32 @@ async function fetchRenderedHtml(url: string): Promise<string> {
                   seenKeys.add(key);
                   combinedBody += await page.evaluate(() => document.body.innerHTML);
                 } catch { break; }
+              }
+            }
+
+            // Phase 3 : slider auto-rotatif (timer) — tourne toujours après Phase 1/2.
+            // Rattrape les slides uniquement accessibles par timer (ex: 5ème slide de floey.fr).
+            // Timeout réduit à 5s par slide pour limiter l'impact sur les sites sans auto-rotation.
+            if (q0) {
+              const MAX_SLIDES = 8;
+              const MAX_WAIT_PER_SLIDE_MS = 8000;
+              const POLL_MS = 400;
+              const seenKeys = new Set([q0, await getQuoteKey()]);
+              for (let slide = 0; slide < MAX_SLIDES; slide++) {
+                let waited = 0;
+                let advanced = false;
+                while (waited < MAX_WAIT_PER_SLIDE_MS) {
+                  await page.waitForTimeout(POLL_MS);
+                  waited += POLL_MS;
+                  const key = await getQuoteKey();
+                  if (key && !seenKeys.has(key)) {
+                    seenKeys.add(key);
+                    combinedBody += await page.evaluate(() => document.body.innerHTML);
+                    advanced = true;
+                    break;
+                  }
+                }
+                if (!advanced) break;
               }
             }
 
@@ -256,11 +292,12 @@ export async function scrapeWebsite(rawUrl: string): Promise<ScrapedContent> {
       }
     });
 
-    // ── Passe B : scan feuille — <p> avec guillemet + attribution dans le voisinage ──
+    // ── Passe B : scan feuille — <p>/<h2>/<h3> avec guillemet + attribution dans le voisinage ──
     // Rattrape les structures à nesting plus profond où Passe A n'a pas matché.
-    $("p").each((_, el) => {
+    // Inclut <h2>/<h3> pour les sites qui mettent la citation dans un heading (ex: floey.fr).
+    $("p, h2, h3").each((_, el) => {
       const txt = cleanText($(el).text());
-      if (txt.length < 40 || txt.length > 600) return;
+      if (txt.length < 20 || txt.length > 600) return;
       if (!/^["""«\u201C\u00AB'']/.test(txt)) return;
 
       const key = txt.substring(0, 60);

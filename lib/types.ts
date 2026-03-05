@@ -40,6 +40,7 @@ export interface AnalysisResult {
   analyzedAt: string;
   previousScore?: PreviousScore | null;
   fromCache?: boolean;
+  scrapingWarnings?: Record<string, string>;
 }
 
 export interface ScrapedContent {
