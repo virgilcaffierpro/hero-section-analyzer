@@ -58,7 +58,7 @@ function buildContentMessage(url: string, content: ScrapedContent, target: strin
   ];
 
   if (content.testimonials.length > 0) {
-    lines.push(`TÉMOIGNAGES:\n${content.testimonials.slice(0, 2).map(t => t.substring(0, 300)).join("\n---\n")}`);
+    lines.push(`TÉMOIGNAGES:\n${content.testimonials.slice(0, 3).map(t => t.substring(0, 500)).join("\n---\n")}`);
   }
   if (content.servicesText) {
     lines.push(`SERVICES: ${content.servicesText.substring(0, 350)}`);
