@@ -223,21 +223,6 @@ function LandingView({ url, setUrl, onSubmit, limitReached }: {
         </div>
       </section>
 
-      {/* CTA bottom */}
-      <section className="landing-cta">
-        <h2 className="landing-cta-title">
-          Prêt à découvrir ce que ton visiteur<br />
-          pense <span>vraiment</span> ?
-        </h2>
-        <button className="btn-primary" onClick={() => {
-          const input = document.querySelector<HTMLInputElement>(".landing-input-row input");
-          if (input) { input.focus(); input.scrollIntoView({ behavior: "smooth", block: "center" }); }
-        }}>
-          Analyser ma hero section
-          <ArrowRight size={16} />
-        </button>
-      </section>
-
       {/* Footer */}
       <footer className="landing-footer">
         <a href="https://www.framesacademie.com" target="_blank" rel="noopener noreferrer">
