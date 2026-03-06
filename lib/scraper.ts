@@ -1,7 +1,7 @@
 import type { ScrapedContent } from "./types";
 
 const TIMEOUT_MS = 5000;
-const PLAYWRIGHT_TIMEOUT_MS = 20000;
+const PLAYWRIGHT_TIMEOUT_MS = 15000;
 const VIEWPORT_HEIGHT = 900;
 const VIEWPORT_WIDTH = 1280;
 
@@ -40,7 +40,7 @@ async function scrapeHeroWithPlaywright(url: string): Promise<ScrapedContent> {
     const page = await ctx.newPage();
     try {
       await page.goto(url, { waitUntil: "networkidle", timeout: PLAYWRIGHT_TIMEOUT_MS });
-      await page.waitForTimeout(1500);
+      await page.waitForTimeout(1000);
 
       const heroData = await page.evaluate((vpHeight: number) => {
         const VH = vpHeight;

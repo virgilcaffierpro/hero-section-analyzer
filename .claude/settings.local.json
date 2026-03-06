@@ -45,7 +45,8 @@
       "Bash(npm install -g @render-oss/render-cli)",
       "Bash(npm install -g render-cli)",
       "Bash(render --help)",
-      "Bash(npm install)"
+      "Bash(npm install)",
+      "Bash(npx vercel inspect hungry-swanson-7fkvpnhd9-virgilcaffierpros-projects.vercel.app --logs)"
     ]
   }
 }

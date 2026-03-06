@@ -90,7 +90,7 @@ export async function analyzeHeroSection(
 
   const client = new Anthropic({
     apiKey: (process.env.ANTHROPIC_API_KEY || "").trim(),
-    timeout: 55000,
+    timeout: 40000,
     maxRetries: 0,
   });
 
