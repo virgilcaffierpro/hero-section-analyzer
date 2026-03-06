@@ -75,56 +75,47 @@ function LoadingView({ url }: { url: string }) {
   const progress = Math.min((currentStep / LOADING_STEPS.length) * 100, 95);
 
   return (
-    <div className="landing-page">
-      <section className="landing-hero">
-        <div className="card" style={{ width: "100%", maxWidth: 480, margin: "0 auto" }}>
-          <div className="p-6">
-            {/* Step icons */}
-            <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginBottom: "24px" }}>
-              {LOADING_STEPS.map((step, index) => {
-                const isCompleted = index < currentStep - 1;
-                const isCurrent = index === currentStep - 1;
-                return (
-                  <div key={step.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", minWidth: "52px" }}>
-                    <div className={`loading-step-circle ${isCompleted ? "completed" : isCurrent ? "active" : "pending"}`}>
-                      {isCompleted ? (
-                        <CheckCircle size={20} weight="fill" style={{ color: "#059669" }} />
-                      ) : (
-                        <step.Icon size={20} weight={isCurrent ? "fill" : "regular"} />
-                      )}
-                    </div>
-                    {isCurrent && (
-                      <span className="text-xs font-semibold text-center" style={{ color: "var(--accent)", lineHeight: "1.2" }}>
-                        {step.label}
-                      </span>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 16px" }}>
+      <div className="card" style={{ width: "100%", maxWidth: 480 }}>
+        <div className="p-6">
+          <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginBottom: "24px" }}>
+            {LOADING_STEPS.map((step, index) => {
+              const isCompleted = index < currentStep - 1;
+              const isCurrent = index === currentStep - 1;
+              return (
+                <div key={step.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", minWidth: "52px" }}>
+                  <div className={`loading-step-circle ${isCompleted ? "completed" : isCurrent ? "active" : "pending"}`}>
+                    {isCompleted ? (
+                      <CheckCircle size={20} weight="fill" style={{ color: "#059669" }} />
+                    ) : (
+                      <step.Icon size={20} weight={isCurrent ? "fill" : "regular"} />
                     )}
                   </div>
-                );
-              })}
-            </div>
-
-            {/* Progress bar */}
-            <div className="progress-bar-track" style={{ marginBottom: "12px" }}>
-              <div className="progress-bar-fill" style={{ width: `${progress}%`, background: "linear-gradient(to right, var(--accent), #A78BFA)" }} />
-            </div>
-
-            <p className="text-center text-xs" style={{ color: "var(--text-muted)" }}>~20 secondes</p>
+                  {isCurrent && (
+                    <span className="text-xs font-semibold text-center" style={{ color: "var(--accent)", lineHeight: "1.2" }}>
+                      {step.label}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
-
-          {/* Disabled input showing URL */}
-          <div className="p-4" style={{ borderTop: "1px solid var(--border)" }}>
-            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-              <input type="text" className="input-field text-sm" value={url} disabled style={{ opacity: 0.6, flex: 1, padding: "10px 14px" }} />
-              <button className="btn-primary flex-shrink-0" disabled style={{ padding: "10px 20px", fontSize: "13px" }}>
-                <span className="loading-spinner" />
-                Scanning...
-              </button>
-            </div>
+          <div className="progress-bar-track" style={{ marginBottom: "12px" }}>
+            <div className="progress-bar-fill" style={{ width: `${progress}%`, background: "linear-gradient(to right, var(--accent), #A78BFA)" }} />
+          </div>
+          <p className="text-center text-xs" style={{ color: "var(--text-muted)" }}>~20 secondes</p>
+        </div>
+        <div className="p-4" style={{ borderTop: "1px solid var(--border)" }}>
+          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <input type="text" className="input-field text-sm" value={url} disabled style={{ opacity: 0.6, flex: 1, padding: "10px 14px" }} />
+            <button className="btn-primary flex-shrink-0" disabled style={{ padding: "10px 20px", fontSize: "13px" }}>
+              <span className="loading-spinner" />
+              Scanning...
+            </button>
           </div>
         </div>
-      </section>
-
-      <footer className="landing-footer">
+      </div>
+      <footer className="landing-footer" style={{ position: "fixed", bottom: 0, left: 0, right: 0 }}>
         <a href="https://www.framesacademie.com" target="_blank" rel="noopener noreferrer">
           Créé par Frames académie <ExternalLink size={12} />
         </a>
@@ -136,24 +127,22 @@ function LoadingView({ url }: { url: string }) {
 // ── Error component ────────────────────────────────────────
 function ErrorView({ error, onRetry }: { error: string; onRetry: () => void }) {
   return (
-    <div className="landing-page">
-      <section className="landing-hero">
-        <div className="card" style={{ width: "100%", maxWidth: 480, margin: "0 auto" }}>
-          <div className="p-6 text-center">
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: "#FEF2F2", border: "1px solid #FECACA" }}>
-              <AlertCircle size={22} color="#DC2626" />
-            </div>
-            <h3 className="font-bold mb-2" style={{ color: "var(--text-primary)" }}>Analyse impossible</h3>
-            <p className="text-sm mb-5" style={{ color: "var(--text-secondary)", lineHeight: "1.6" }}>{error}</p>
-            <button onClick={onRetry} className="btn-primary">
-              <ArrowCounterClockwise size={14} weight="bold" />
-              Réessayer
-            </button>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 16px" }}>
+      <div className="card" style={{ width: "100%", maxWidth: 480 }}>
+        <div className="p-6 text-center">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: "#FEF2F2", border: "1px solid #FECACA" }}>
+            <AlertCircle size={22} color="#DC2626" />
           </div>
+          <h3 className="font-bold mb-2" style={{ color: "var(--text-primary)" }}>Analyse impossible</h3>
+          <p className="text-sm mb-5" style={{ color: "var(--text-secondary)", lineHeight: "1.6" }}>{error}</p>
+          <button onClick={onRetry} className="btn-primary">
+            <ArrowCounterClockwise size={14} weight="bold" />
+            Réessayer
+          </button>
         </div>
-      </section>
+      </div>
 
-      <footer className="landing-footer">
+      <footer className="landing-footer" style={{ position: "fixed", bottom: 0, left: 0, right: 0 }}>
         <a href="https://www.framesacademie.com" target="_blank" rel="noopener noreferrer">
           Créé par Frames académie <ExternalLink size={12} />
         </a>
