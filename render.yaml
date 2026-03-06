@@ -10,3 +10,7 @@ services:
         sync: false
       - key: NODE_ENV
         value: production
+      - key: PLAYWRIGHT_BROWSERS_PATH
+        value: /opt/render/.cache/playwright
+      - key: PORT
+        value: "10000"
