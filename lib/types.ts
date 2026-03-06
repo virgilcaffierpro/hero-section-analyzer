@@ -15,28 +15,29 @@ export interface QuickWin {
   impact: "fort" | "moyen" | "faible";
 }
 
-export interface ActionPlan {
-  week1: string[];
-  week2_3: string[];
-  week4: string[];
-}
-
-export type PortfolioLevel = "vitrine" | "transition" | "vend";
+export type HeroLevel = "fuite" | "confuse" | "convainc";
 
 export interface PreviousScore {
   score: number;
-  level: PortfolioLevel;
+  level: HeroLevel;
   analyzedAt: string;
+}
+
+export interface HeroRewrite {
+  headline: string;
+  subheadline: string;
+  rationale: string;
 }
 
 export interface AnalysisResult {
   url: string;
   totalScore: number;
-  level: PortfolioLevel;
+  level: HeroLevel;
   verdict: string;
   axes: AxisResult[];
   quickWins: QuickWin[];
-  plan30Days?: ActionPlan;
+  heroRewrite?: HeroRewrite;
+  heroOriginal?: { headline: string; subheadline: string };
   analyzedAt: string;
   previousScore?: PreviousScore | null;
   fromCache?: boolean;
@@ -44,19 +45,29 @@ export interface AnalysisResult {
 }
 
 export interface ScrapedContent {
+  // Meta
   title: string;
   metaDescription: string;
-  h1: string[];
-  h2: string[];
-  bodyText: string;
-  ctaTexts: string[];
-  testimonials: string[];
+
+  // Hero-specific content
+  heroHeadline: string;
+  heroSubheadline: string;
+  heroCTAs: string[];
+  hasHeroImage: boolean;
+  hasHeroVideo: boolean;
+
+  // Trust signals in hero
+  trustSignals: string[];
+  heroLogos: number;
+  heroNumbers: string[];
+  heroMicroTestimonial: string;
+
+  // Navigation (above the fold)
   navigationItems: string[];
-  hasContactForm: boolean;
-  hasTestimonials: boolean;
-  hasCaseStudies: boolean;
-  servicesText: string;
-  aboutText: string;
-  pricingText: string;
+
+  // Raw hero text for context
+  heroRawText: string;
+
+  // Error handling
   error?: string;
 }

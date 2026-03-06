@@ -1,7 +1,7 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import type { AnalysisResult, PortfolioLevel } from "./types";
+import type { AnalysisResult, HeroLevel } from "./types";
 
 // On Vercel (production), process.cwd() is read-only — use /tmp instead
 const DATA_DIR = process.env.VERCEL
@@ -73,7 +73,7 @@ export interface HistoryEntry {
   url: string;
   normalizedUrl: string;
   totalScore: number;
-  level: PortfolioLevel;
+  level: HeroLevel;
   analyzedAt: string;
 }
 

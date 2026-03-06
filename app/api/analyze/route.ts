@@ -1,30 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { scrapeWebsite } from "@/lib/scraper";
-import { analyzePortfolio } from "@/lib/analyzer";
+import { analyzeHeroSection } from "@/lib/analyzer";
 import { getCached, setCached, clearCachedUrl, getLastEntry, addToHistory } from "@/lib/cache";
 import type { ScrapedContent } from "@/lib/types";
 
 function computeScrapingWarnings(content: ScrapedContent): Record<string, string> {
   const w: Record<string, string> = {};
 
-  if (!content.h1.length && !content.metaDescription) {
-    w.positioning = "Aucun titre H1 ni meta description trouvés. Ces balises sont essentielles pour ton positionnement — vérifie qu'elles sont bien présentes dans le HTML de ta page.";
+  if (!content.heroHeadline) {
+    w.value_prop = "Aucun headline (H1) détecté dans la hero section. Vérifie qu'un H1 est bien présent au-dessus de la ligne de flottaison.";
   }
 
-  if (content.testimonials.length === 0) {
-    w.social_proof = "Aucun témoignage détecté sur ta page. S'ils sont présents, ils sont peut-être dans un carrousel avec timer, masqués au chargement ou dans un format non standard. Assure-toi qu'au moins un témoignage est visible sans interaction dès le chargement.";
+  if (!content.heroSubheadline) {
+    w.hook = "Aucun sous-titre détecté sous le headline. Un subheadline aide à clarifier la promesse et contextualiser l'offre.";
   }
 
-  if (content.ctaTexts.length === 0 && !content.hasContactForm) {
-    w.cta = "Aucun bouton de contact ni formulaire détecté. Vérifie que tes CTAs sont des balises <a> ou <button> avec un lien ou texte contenant « contact », « devis », « book » ou « calendly ».";
+  if (content.heroCTAs.length === 0) {
+    w.hero_cta = "Aucun bouton d'action détecté dans la hero section. Vérifie que tes CTAs sont des <a> ou <button> visibles au-dessus de la ligne de flottaison.";
   }
 
-  if (!content.servicesText && !content.pricingText) {
-    w.offer_clarity = "Aucune section offre ou tarifs identifiée. Ajoute une classe CSS contenant « services », « offre », « pricing » ou « tarifs » sur ta section pour que l'analyse soit plus précise.";
-  }
-
-  if (!content.aboutText) {
-    w.storytelling = "Aucune section À propos détectée. Ajoute la classe ou l'id « about », « bio » ou « à-propos » sur ta section personnelle pour améliorer l'analyse du storytelling.";
+  if (content.heroLogos === 0 && content.heroNumbers.length === 0 && !content.heroMicroTestimonial && content.trustSignals.length === 0) {
+    w.social_proof = "Aucun signal de confiance détecté dans la hero (logos, chiffres, témoignage). S'ils sont présents plus bas, envisage d'en remonter un dans la hero.";
   }
 
   return w;
@@ -61,25 +57,23 @@ export async function POST(request: NextRequest) {
     if (!force) {
       const cached = getCached(trimmedUrl);
       if (cached) {
-        // Attach the previous score (the one before the cached entry in history)
         const urlHistory = getLastEntry(trimmedUrl);
         return NextResponse.json({ ...cached, fromCache: true, previousScore: urlHistory ?? null });
       }
     } else {
-      // Force reanalysis: clear cache for this URL
       clearCachedUrl(trimmedUrl);
     }
 
     // Get the last history entry before this new analysis (for delta)
     const previousEntry = getLastEntry(trimmedUrl);
 
-    // Step 1: Scrape
+    // Step 1: Scrape hero section
     const scrapedContent = await scrapeWebsite(trimmedUrl);
 
     // Step 2: Analyze with Claude
-    const result = await analyzePortfolio(trimmedUrl, scrapedContent, typeof target === "string" ? target.trim() : "");
+    const result = await analyzeHeroSection(trimmedUrl, scrapedContent, typeof target === "string" ? target.trim() : "");
 
-    // Attach previous score for delta display + scraping warnings
+    // Attach previous score for delta display + scraping warnings + original hero text
     const resultWithHistory = {
       ...result,
       fromCache: false,
@@ -87,6 +81,10 @@ export async function POST(request: NextRequest) {
         ? { score: previousEntry.totalScore, level: previousEntry.level, analyzedAt: previousEntry.analyzedAt }
         : null,
       scrapingWarnings: computeScrapingWarnings(scrapedContent),
+      heroOriginal: {
+        headline: scrapedContent.heroHeadline || scrapedContent.title || "",
+        subheadline: scrapedContent.heroSubheadline || scrapedContent.metaDescription || "",
+      },
     };
 
     // Save to cache and history

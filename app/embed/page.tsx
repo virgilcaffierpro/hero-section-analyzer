@@ -1,27 +1,27 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { ArrowRight, AlertCircle, RefreshCw, ExternalLink, Clock } from "lucide-react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { ArrowRight, AlertCircle, ExternalLink } from "lucide-react";
+import { Globe, Camera, Diamond, Lightning, Star, ChartBar, ArrowCounterClockwise, Clock, CheckCircle } from "@phosphor-icons/react";
 import type { AnalysisResult } from "@/lib/types";
 import ResultsDashboard from "@/components/ResultsDashboard";
 
 type AppState = "input" | "loading" | "results" | "error";
 
 const LOADING_STEPS = [
-  { id: 1, label: "Accès au site en cours…" },
-  { id: 2, label: "Analyse du message de positionnement…" },
-  { id: 3, label: "Analyse de la preuve sociale…" },
-  { id: 4, label: "Analyse des CTAs et de l'offre…" },
-  { id: 5, label: "Analyse du storytelling et de l'UX…" },
-  { id: 6, label: "Génération du diagnostic…" },
-  { id: 7, label: "Finalisation des recommandations…" },
+  { id: 1, Icon: Globe, label: "Accès au site" },
+  { id: 2, Icon: Camera, label: "Capture hero" },
+  { id: 3, Icon: Diamond, label: "Prop. de valeur" },
+  { id: 4, Icon: Lightning, label: "Accroche & CTA" },
+  { id: 5, Icon: Star, label: "Preuve sociale" },
+  { id: 6, Icon: ChartBar, label: "Finalisation" },
 ];
 
-const STEP_DURATIONS = [3000, 4000, 3000, 3000, 3000, 4000, 5000];
+const STEP_DURATIONS = [3000, 4000, 4000, 4000, 4000, 6000];
 
 function EmbedLoading({ url }: { url: string }) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
 
   useEffect(() => {
     let elapsed = 0;
@@ -29,7 +29,6 @@ function EmbedLoading({ url }: { url: string }) {
     LOADING_STEPS.forEach((_, index) => {
       const timer = setTimeout(() => {
         setCurrentStep(index + 1);
-        if (index > 0) setCompletedSteps((prev) => [...prev, index]);
       }, elapsed);
       timers.push(timer);
       elapsed += STEP_DURATIONS[index];
@@ -37,68 +36,74 @@ function EmbedLoading({ url }: { url: string }) {
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  const progress = Math.min(((currentStep - 1) / LOADING_STEPS.length) * 100, 95);
+  const progress = Math.min(((currentStep) / LOADING_STEPS.length) * 100, 95);
 
   return (
     <div className="p-6">
-      <div className="text-center mb-6">
-        <div
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-4"
-          style={{ background: "var(--accent-light)", color: "var(--accent)", border: "1px solid var(--accent-border)" }}
-        >
-          <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--accent)", animation: "loadingBounce 1.4s ease-in-out infinite" }} />
-          Analyse en cours
-        </div>
-        <h2 className="text-lg font-bold mb-1" style={{ color: "var(--text-primary)" }}>On regarde ton site…</h2>
-        <p className="text-xs" style={{ color: "var(--text-muted)", fontFamily: "monospace", wordBreak: "break-all" }}>{url}</p>
-      </div>
-
-      <div className="mb-5">
-        <div className="flex items-center justify-between text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>
-          <span>Progression</span>
-          <span style={{ color: "var(--accent)", fontWeight: 600 }}>{Math.round(progress)}%</span>
-        </div>
-        <div className="progress-bar-track">
-          <div className="progress-bar-fill" style={{ width: `${progress}%`, background: "linear-gradient(to right, var(--accent), #A78BFA)" }} />
-        </div>
-      </div>
-
-      <div className="space-y-1.5">
+      {/* Horizontal step icons */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "8px",
+          marginBottom: "24px",
+        }}
+      >
         {LOADING_STEPS.map((step, index) => {
           const isCompleted = index < currentStep - 1;
           const isCurrent = index === currentStep - 1;
           const isPending = index >= currentStep;
+
           return (
             <div
               key={step.id}
-              className="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-300"
               style={{
-                background: isCurrent ? "var(--accent-light)" : isCompleted ? "#F0FDF4" : "transparent",
-                opacity: isPending ? 0.35 : 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "6px",
+                minWidth: "52px",
               }}
             >
-              <div className="flex-shrink-0 w-4 h-4 flex items-center justify-center">
+              <div
+                className={`loading-step-circle ${
+                  isCompleted ? "completed" : isCurrent ? "active" : isPending ? "pending" : ""
+                }`}
+              >
                 {isCompleted ? (
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                    <circle cx="8" cy="8" r="8" fill="#10B981" />
-                    <path d="M5 8l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                ) : isCurrent ? (
-                  <div className="w-3.5 h-3.5 rounded-full border-2" style={{ borderColor: "var(--accent)", borderTopColor: "transparent", animation: "spin 0.7s linear infinite" }} />
+                  <CheckCircle size={20} weight="fill" style={{ color: "#059669" }} />
                 ) : (
-                  <div className="w-3.5 h-3.5 rounded-full" style={{ border: "1.5px solid var(--border)" }} />
+                  <step.Icon size={20} weight={isCurrent ? "fill" : "regular"} />
                 )}
               </div>
-              <span
-                className="text-xs"
-                style={{ color: isCurrent ? "var(--accent)" : isCompleted ? "#059669" : "var(--text-muted)", fontWeight: isCurrent ? 600 : 400 }}
-              >
-                {step.label}
-              </span>
+              {isCurrent && (
+                <span
+                  className="text-xs font-semibold text-center"
+                  style={{ color: "var(--accent)", lineHeight: "1.2" }}
+                >
+                  {step.label}
+                </span>
+              )}
             </div>
           );
         })}
       </div>
+
+      {/* Progress bar */}
+      <div className="progress-bar-track" style={{ marginBottom: "12px" }}>
+        <div
+          className="progress-bar-fill"
+          style={{
+            width: `${progress}%`,
+            background: "linear-gradient(to right, var(--accent), #A78BFA)",
+          }}
+        />
+      </div>
+
+      {/* Time estimate */}
+      <p className="text-center text-xs" style={{ color: "var(--text-muted)" }}>
+        ~20 secondes
+      </p>
     </div>
   );
 }
@@ -111,9 +116,9 @@ interface HistoryEntry {
   analyzedAt: string;
 }
 
-const LS_KEY = "pa-history";
-const LS_LAST_ANALYSIS = "pa-last-analysis";
-const LS_LAST_RESULT = "pa-last-result";
+const LS_KEY = "ha-history";
+const LS_LAST_ANALYSIS = "ha-last-analysis";
+const LS_LAST_RESULT = "ha-last-result";
 
 function canAnalyzeToday(): boolean {
   try {
@@ -162,8 +167,8 @@ function HistoryPanel({ history, onReanalyze, onViewResult, limitReached }: {
   if (!history || history.length === 0) return null;
 
   const levelColor = (level: string) => {
-    if (level === "vend") return "#059669";
-    if (level === "transition") return "#D97706";
+    if (level === "convainc") return "#059669";
+    if (level === "confuse") return "#D97706";
     return "#DC2626";
   };
 
@@ -202,7 +207,7 @@ function HistoryPanel({ history, onReanalyze, onViewResult, limitReached }: {
                   onClick={(e) => { e.stopPropagation(); onReanalyze(entry.url, true); }}
                   title="Forcer une nouvelle analyse"
                 >
-                  <RefreshCw size={11} />
+                  <ArrowCounterClockwise size={11} weight="bold" />
                 </button>
               )}
             </div>
@@ -221,13 +226,13 @@ function EmbedInput({ onAnalyze, history, limitReached, onViewResult }: { onAnal
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = url.trim();
-    if (!trimmed) { setError("Entre l'URL de ton portfolio."); return; }
+    if (!trimmed) { setError("Entre l'URL de ta page."); return; }
     const withProtocol = trimmed.startsWith("http") ? trimmed : `https://${trimmed}`;
     try {
       new URL(withProtocol);
       onAnalyze(trimmed, target.trim());
     } catch {
-      setError("URL invalide. Ex : https://monportfolio.com");
+      setError("URL invalide. Ex : https://monsite.com");
     }
   }
 
@@ -236,12 +241,12 @@ function EmbedInput({ onAnalyze, history, limitReached, onViewResult }: { onAnal
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
           <label className="block text-xs font-medium mb-1" style={{ color: "var(--text-secondary)" }}>
-            URL de ton portfolio
+            URL de ta page
           </label>
           <input
             type="text"
             className="input-field text-sm"
-            placeholder="https://monportfolio.com"
+            placeholder="https://monsite.com"
             value={url}
             onChange={(e) => { setUrl(e.target.value); if (error) setError(""); }}
             autoFocus
@@ -268,7 +273,7 @@ function EmbedInput({ onAnalyze, history, limitReached, onViewResult }: { onAnal
           />
         </div>
         <button type="submit" className="btn-primary w-full justify-center py-3" disabled={!url.trim() || limitReached}>
-          Analyser mon portfolio
+          Analyser ma hero section
           <ArrowRight size={15} />
         </button>
         {limitReached && (
@@ -279,12 +284,14 @@ function EmbedInput({ onAnalyze, history, limitReached, onViewResult }: { onAnal
       </form>
 
       <div className="mt-4 grid grid-cols-2 gap-2">
-        {[{ icon: "🔍", label: "7 axes" }, { icon: "⏱", label: "30–60 sec" }].map((item, i) => (
-          <div key={i} className="text-center p-2 rounded-xl" style={{ background: "var(--bg-muted)", border: "1px solid var(--border)" }}>
-            <div className="text-base mb-0.5">{item.icon}</div>
-            <p className="text-xs" style={{ color: "var(--text-secondary)" }}>{item.label}</p>
-          </div>
-        ))}
+        <div className="text-center p-2 rounded-xl" style={{ background: "var(--bg-muted)", border: "1px solid var(--border)" }}>
+          <div className="text-base mb-0.5"><ChartBar size={18} weight="duotone" style={{ display: "inline-block", color: "var(--accent)" }} /></div>
+          <p className="text-xs" style={{ color: "var(--text-secondary)" }}>7 axes hero</p>
+        </div>
+        <div className="text-center p-2 rounded-xl" style={{ background: "var(--bg-muted)", border: "1px solid var(--border)" }}>
+          <div className="text-base mb-0.5"><Clock size={18} weight="duotone" style={{ display: "inline-block", color: "var(--accent)" }} /></div>
+          <p className="text-xs" style={{ color: "var(--text-secondary)" }}>30–60 sec</p>
+        </div>
       </div>
       <HistoryPanel history={history} onReanalyze={(url) => onAnalyze(url, "", false)} onViewResult={onViewResult} limitReached={limitReached} />
     </div>
@@ -300,14 +307,14 @@ function EmbedError({ error, onRetry }: { error: string; onRetry: () => void }) 
       <h3 className="font-bold mb-2" style={{ color: "var(--text-primary)" }}>Analyse impossible</h3>
       <p className="text-sm mb-5" style={{ color: "var(--text-secondary)", lineHeight: "1.6" }}>{error}</p>
       <button onClick={onRetry} className="btn-primary">
-        <RefreshCw size={14} />
+        <ArrowCounterClockwise size={14} weight="bold" />
         Réessayer
       </button>
     </div>
   );
 }
 
-export default function EmbedPage() {
+function EmbedPageInner() {
   const [state, setState] = useState<AppState>("input");
   const [url, setUrl] = useState("");
   const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -315,6 +322,8 @@ export default function EmbedPage() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [limitReached, setLimitReached] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const searchParams = useSearchParams();
+  const autoLaunched = useRef(false);
 
   useEffect(() => {
     setHistory(loadHistory());
@@ -333,7 +342,7 @@ export default function EmbedPage() {
 
     // Restore last result on refresh, unless user explicitly chose to go back to input
     try {
-      const userReset = sessionStorage.getItem("pa-reset");
+      const userReset = sessionStorage.getItem("ha-reset");
       const saved = localStorage.getItem(LS_LAST_RESULT);
       if (saved && !userReset) {
         const parsed = JSON.parse(saved);
@@ -384,9 +393,18 @@ export default function EmbedPage() {
     }
   }, [isAdmin]);
 
+  // Auto-launch from ?url= query param (coming from landing page)
+  useEffect(() => {
+    const paramUrl = searchParams.get("url");
+    if (paramUrl && !autoLaunched.current && state === "input") {
+      autoLaunched.current = true;
+      handleAnalyze(paramUrl, "");
+    }
+  }, [searchParams, handleAnalyze, state]);
+
   function handleReset() {
     setState("input"); setError(""); setResult(null);
-    try { sessionStorage.setItem("pa-reset", "1"); } catch {}
+    try { sessionStorage.setItem("ha-reset", "1"); } catch {}
   }
   function handleForceReanalyze() { handleAnalyze(url, "", true); }
   function handleViewLastResult() {
@@ -397,22 +415,32 @@ export default function EmbedPage() {
         setResult(parsed.result);
         setUrl(parsed.url);
         setState("results");
-        sessionStorage.removeItem("pa-reset");
+        sessionStorage.removeItem("ha-reset");
       }
     } catch {}
   }
 
+  const isResults = state === "results" && result;
+
   return (
-    <div style={{ background: "transparent", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 16px" }}>
+    <div style={{
+      background: "transparent",
+      minHeight: "100vh",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: isResults ? "stretch" : "center",
+      justifyContent: isResults ? "flex-start" : "center",
+      padding: isResults ? "0" : "24px 16px",
+    }}>
       {state === "input" && (
         <div style={{ width: "100%", maxWidth: 480 }}>
           <div className="text-center mb-6">
             <span className="inline-block text-xs font-semibold tracking-widest uppercase px-3 py-1 rounded-full mb-4" style={{ background: "var(--accent-light)", color: "var(--accent)" }}>
               Audit gratuit
             </span>
-            <h1 className="text-2xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>Analyse ton portfolio</h1>
+            <h1 className="text-2xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>Analyse ta hero section</h1>
             <p className="text-sm" style={{ color: "var(--text-secondary)", lineHeight: "1.6" }}>
-              Colle l'URL de ton site. L'IA va analyser ton message, tes CTAs, ta preuve sociale — et te dire ce qui bloque tes conversions.
+              Colle l'URL de ta page. L'IA va analyser ce que ton visiteur voit dans les 5 premières secondes — et te dire ce qui le fait rester ou fuir.
             </p>
           </div>
           <div className="card">
@@ -421,8 +449,30 @@ export default function EmbedPage() {
         </div>
       )}
       {state === "loading" && (
-        <div className="card" style={{ width: "100%", maxWidth: 480 }}>
-          <EmbedLoading url={url} />
+        <div style={{ width: "100%", maxWidth: 480 }}>
+          <div className="card" style={{ marginBottom: "12px" }}>
+            <EmbedLoading url={url} />
+          </div>
+          {/* Compact disabled input */}
+          <div className="card p-4">
+            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <input
+                type="text"
+                className="input-field text-sm"
+                value={url}
+                disabled
+                style={{ opacity: 0.6, flex: 1, padding: "10px 14px" }}
+              />
+              <button
+                className="btn-primary flex-shrink-0"
+                disabled
+                style={{ padding: "10px 20px", fontSize: "13px" }}
+              >
+                <span className="loading-spinner" />
+                Scanning...
+              </button>
+            </div>
+          </div>
         </div>
       )}
       {state === "results" && result && (
@@ -435,17 +485,27 @@ export default function EmbedPage() {
       )}
 
       {/* Powered by footer */}
-      <div className="text-center py-3">
-        <a
-          href="https://framesacademie.fr"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-xs"
-          style={{ color: "var(--text-muted)" }}
-        >
-          Créé par Frames académie <ExternalLink size={10} />
-        </a>
-      </div>
+      {!isResults && (
+        <div className="text-center py-3">
+          <a
+            href="https://framesacademie.fr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-xs"
+            style={{ color: "var(--text-muted)" }}
+          >
+            Créé par Frames académie <ExternalLink size={10} />
+          </a>
+        </div>
+      )}
     </div>
+  );
+}
+
+export default function EmbedPage() {
+  return (
+    <Suspense>
+      <EmbedPageInner />
+    </Suspense>
   );
 }
