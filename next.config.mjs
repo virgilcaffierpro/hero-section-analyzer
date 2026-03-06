@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ['cheerio', 'playwright'],
+  experimental: {
+    serverComponentsExternalPackages: ['cheerio', 'playwright'],
+  },
 };
 
 export default nextConfig;
