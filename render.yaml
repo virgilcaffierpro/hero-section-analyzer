@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: hero-analyzer
+    runtime: node
+    plan: free
+    buildCommand: npm install && npx playwright install --with-deps chromium && npm run build
+    startCommand: npm start
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: NODE_ENV
+        value: production

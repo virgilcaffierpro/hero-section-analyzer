@@ -650,14 +650,13 @@ function ShareResult({
   }
 
   function handleLinkedIn() {
-    const text = encodeURIComponent(
-      `Je viens de tester ma hero section avec Hero Analyzer :\n\nScore : ${result.totalScore}/100\nNiveau : ${levelConfig.label}\n\nL'outil analyse 7 axes clés (proposition de valeur, accroche, CTA, preuve sociale...) et donne un plan d'action concret.\n\nTestez votre page :`
-    );
-    const shareUrl = encodeURIComponent(result.url);
+    const emoji = result.totalScore >= 70 ? "🟢" : result.totalScore >= 40 ? "🟠" : "🔴";
+    const post = `${emoji} J'ai fait auditer ma hero section par une IA.\n\nRésultat : ${result.totalScore}/100 — "${levelConfig.label}"\n\nL'outil analyse 7 axes en 30 secondes :\n→ Proposition de valeur\n→ Accroche & hook\n→ CTA\n→ Preuve sociale\n→ Hiérarchie visuelle\n→ Spécificité\n→ Alignement cible\n\nC'est gratuit, testez votre page ici 👇\nhttps://hungry-swanson.vercel.app`;
+    const encoded = encodeURIComponent(post);
     window.open(
-      `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}&summary=${text}`,
+      `https://www.linkedin.com/feed/?shareActive=true&text=${encoded}`,
       "_blank",
-      "width=600,height=500"
+      "width=600,height=600"
     );
   }
 
@@ -710,12 +709,6 @@ function ShareResult({
         <p className="cs-share-potential-sub">
           Appliquez les actions prioritaires ci-dessus puis relancez l&apos;analyse pour mesurer vos progrès.
         </p>
-        {onForceReanalyze && (
-          <button className="cs-share-reanalyze" onClick={onForceReanalyze}>
-            <ArrowCounterClockwise size={14} weight="bold" />
-            Relancer l&apos;analyse
-          </button>
-        )}
       </div>
     </div>
   );
