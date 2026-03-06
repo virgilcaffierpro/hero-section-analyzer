@@ -40,7 +40,12 @@
       "Bash(npx vercel --prod --yes)",
       "Bash(vercel env ls)",
       "Bash(npx vercel env ls)",
-      "Bash(npx vercel env ls --all)"
+      "Bash(npx vercel env ls --all)",
+      "Bash(npx render --version)",
+      "Bash(npm install -g @render-oss/render-cli)",
+      "Bash(npm install -g render-cli)",
+      "Bash(render --help)",
+      "Bash(npm install)"
     ]
   }
 }

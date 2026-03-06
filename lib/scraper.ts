@@ -17,10 +17,21 @@ function cleanText(text: string): string {
 }
 
 // Scrape uniquement la hero section (above-the-fold, viewport 1280x900).
-// Un seul contexte Playwright JS-enabled, pas de navigation slider.
+// Utilise Browserless (remote) si BROWSERLESS_API_KEY est défini, sinon Playwright local.
 async function scrapeHeroWithPlaywright(url: string): Promise<ScrapedContent> {
-  const { chromium } = await import("playwright");
-  const browser = await chromium.launch({ headless: true });
+  const { chromium } = await import("playwright-core");
+  const browserlessKey = process.env.BROWSERLESS_API_KEY;
+
+  let browser;
+  if (browserlessKey) {
+    // Vercel: remote browser via Browserless
+    browser = await chromium.connect(`wss://chrome.browserless.io?token=${browserlessKey}`);
+  } else {
+    // Local / Render: launch local Chromium
+    const execPath = process.env.CHROME_PATH || undefined;
+    browser = await chromium.launch({ headless: true, executablePath: execPath });
+  }
+
   try {
     const ctx = await browser.newContext({
       viewport: { width: VIEWPORT_WIDTH, height: VIEWPORT_HEIGHT },
