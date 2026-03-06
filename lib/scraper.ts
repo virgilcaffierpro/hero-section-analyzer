@@ -25,7 +25,7 @@ async function scrapeHeroWithPlaywright(url: string): Promise<ScrapedContent> {
   let browser;
   if (browserlessKey) {
     // Vercel: remote browser via Browserless
-    browser = await chromium.connect(`wss://chrome.browserless.io?token=${browserlessKey}`);
+    browser = await chromium.connectOverCDP(`wss://production-sfo.browserless.io?token=${browserlessKey}`);
   } else {
     // Local / Render: launch local Chromium
     const execPath = process.env.CHROME_PATH || undefined;
