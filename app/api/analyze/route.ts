@@ -42,12 +42,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "L'URL ne peut pas être vide." }, { status: 400 });
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey || apiKey.includes("placeholder") || !apiKey.startsWith("sk-ant-")) {
+    const apiKey = (process.env.ANTHROPIC_API_KEY || "").trim();
+    if (!apiKey || apiKey.includes("placeholder") || apiKey.length < 10) {
       return NextResponse.json(
         {
           error:
-            "🔑 Clé API Anthropic manquante ou invalide. Ouvre le fichier .env.local et remplace la valeur de ANTHROPIC_API_KEY par ta vraie clé (commence par sk-ant-). Récupère-la sur console.anthropic.com.",
+            "Clé API Anthropic manquante ou invalide. Configure ANTHROPIC_API_KEY dans les variables d'environnement.",
         },
         { status: 500 }
       );

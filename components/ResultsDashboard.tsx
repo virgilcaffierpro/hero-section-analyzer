@@ -765,7 +765,7 @@ export default function ResultsDashboard({
                 <ArrowCounterClockwise size={12} weight="bold" /> Ré-analyser
               </button>
             )}
-            <button onClick={() => window.location.href = "/"} className="cs-btn-primary">
+            <button onClick={onReanalyze} className="cs-btn-primary">
               Nouvelle URL
             </button>
           </div>
@@ -852,7 +852,7 @@ export default function ResultsDashboard({
 
         {/* 6. Back */}
         <div style={{ textAlign: "center", paddingBottom: "48px" }}>
-          <button onClick={() => window.location.href = "/"} className="cs-btn-back">
+          <button onClick={onReanalyze} className="cs-btn-back">
             <ArrowLeft size={15} />
             Analyser une autre page
           </button>

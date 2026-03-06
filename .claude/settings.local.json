@@ -16,7 +16,31 @@
       "Bash(~/.local/bin/gh run list --repo virgilcaffierpro/portfolio-analyzer-free --limit 1)",
       "Bash(~/.local/bin/gh run watch 22512324986 --repo virgilcaffierpro/portfolio-analyzer-free)",
       "mcp__Claude_Preview__preview_start",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "WebFetch(domain:noemiesonzay.framer.website)",
+      "Bash(npm install playwright)",
+      "Bash(npx playwright install chromium)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\(''_debugBaptiste'',''no field''\\)\\)\")",
+      "Bash(python3 -c \":*)",
+      "Bash(npx vercel ls)",
+      "Bash(git config user.email)",
+      "Bash(git config user.name)",
+      "Bash(git config --global user.name \"Virgil Caffier\")",
+      "Bash(git config --global user.email \"virgilcaffierpro@gmail.com\")",
+      "Bash(python3:*)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npx tsx -e \":*)",
+      "Bash(npx vercel --version)",
+      "Bash(npx vercel link --repo=virgilcaffierpro/hero-section-analyzer --yes)",
+      "Bash(npx vercel --yes)",
+      "Bash(source .env.local)",
+      "Bash(echo \"$ANTHROPIC_API_KEY\")",
+      "Bash(npx vercel env add ANTHROPIC_API_KEY production)",
+      "Bash(npx vercel env rm ANTHROPIC_API_KEY production --yes)",
+      "Bash(npx vercel --prod --yes)",
+      "Bash(vercel env ls)",
+      "Bash(npx vercel env ls)",
+      "Bash(npx vercel env ls --all)"
     ]
   }
 }
