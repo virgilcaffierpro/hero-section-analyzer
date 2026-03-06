@@ -1,16 +1,10 @@
 services:
   - type: web
     name: hero-analyzer
-    runtime: node
+    runtime: docker
     plan: free
-    buildCommand: npm install && npx playwright install --with-deps chromium && npm run build
-    startCommand: npm start
     envVars:
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: NODE_ENV
         value: production
-      - key: PLAYWRIGHT_BROWSERS_PATH
-        value: /opt/render/.cache/playwright
-      - key: PORT
-        value: "10000"
